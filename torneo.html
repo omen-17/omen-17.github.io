@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alcoholic Olympics Manager</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .team-management {
+            margin-bottom: 2rem;
+        }
+
+        input, select, button {
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .medal {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            font-size: 0.8rem;
+            margin: 0 2px;
+        }
+
+        .gold { background: #FFD700; }
+        .silver { background: #C0C0C0; }
+        .bronze { background: #CD7F32; }
+
+        .discipline {
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+
+        .rules-section {
+            display: none;
+            padding: 1rem;
+            background: #fff;
+            margin: 1rem 0;
+        }
+
+        .active-rule {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🍻 BENVENUTI ALLE ALCOOLIMPIADI🥇</h1>
+        <p></p>
+    </div>
+
+    <div class="grid">
+        <!-- Team Management -->
+        <div class="card">
+            <h2>Gestione Squadre</h2>
+            <div class="team-management">
+                <input type="text" id="teamName" placeholder="Inserire nome squadra">
+                <button onclick="addTeam()">Aggiungere Nuova Squadra</button>
+            </div>
+        </div>
+
+        <!-- Rules Selector -->
+        <div class="card">
+            <h2>Rules</h2>
+            <select id="ruleSelector" onchange="showRule(this.value)">
+                <option value="general">Regole generali</option>
+                <option value="alcohol">Regole alcoliche</option>
+                <option value="scoring">Punteggi</option>
+                <option value="discipline">Regolamento per disciplina</option>
+            </select>
+            
+            <div id="generalRule" class="rules-section active-rule">
+                <h3>Regole generali</h3>
+                <ul>
+                    <li>4 partecipanti per squadra</li>
+                    <li>9 discipine</li>
+                    <li>Infinito divertimento</li>
+                </ul>
+            </div>
+
+            <div id="alcoholRule" class="rules-section">
+                <h3>Regole alcoliche</h3>
+                <ul>
+                    <li>1 shot = ½ bicchiere di vino = 1 birra</li>
+                    <li>Va finito completamente</li>
+                    <li>Il valore degli shot dipende dalla gara </li>
+                </ul>
+            </div>
+
+            <div id="scoringRule" class="rules-section">
+                <h3>Punteggi</h3>
+                <ul>
+                    <li>Oro 🥇: 4 punti</li>
+                    <li>Argento 🥈: 2 punti</li>
+                    <li>Bronzo 🥉: 1 punto</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Schedule & Disciplines -->
+    <div class="card">
+        <h2>Calendario gare</h2>
+        <div class="grid">
+            <div>
+                <h3>Day 1</h3>
+                <ol>
+                    <li>STAFFETTA ALCOLICA</li>
+                    <li>TIRO AL CANESTRO ALCOLICO</li>
+                    <li>LA COPPIA CHE SCOPPIA</li>
+                    <li>FRECCETTE</li>
+                    <li>GARA DI SHOT</li>
+                </ol>
+            </div>
+            
+            <div>
+                <h3>Day 2</h3>
+                <ol start="6">
+                    <li>TIRO AL BERSAGLIO</li>
+                    <li>TIRO ALLA FUNE</li>
+                    <li>TIRO CON L'ARCO</li>
+                    <li>PALLAVOLO</li>
+                    <li>CORSA DEI SACCHI</li>
+                    <li>CERCA IL TESORO</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discipline Results -->
+    <div class="card">
+        <h2>Risultati</h2>
+        <div id="disciplinesContainer"></div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="card">
+        <h2>Classifica Live</h2>
+        <table id="leaderboard" style="width: 100%; margin-top: 1rem;">
+            <thead>
+                <tr>
+                    <th>Squadra</th>
+                    <th>Punti</th>
+                    <th>Oro</th>
+                    <th>Argento</th>
+                    <th>Bronzo</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let teams = JSON.parse(localStorage.getItem('teams')) || [];
+        let disciplines = JSON.parse(localStorage.getItem('disciplines')) || {};
+
+        // Initialize disciplines
+        const disciplineList = [
+            'STAFFETTA ALCOLICA', 'TIRO AL CANESTRO ALCOLICO', 
+            'LA COPPIA CHE SCOPPIA', 'FRECCETTE', 'GARA DI SHOT',
+            'TIRO AL BERSAGLIO', 'TIRO ALLA FUNE', 'TIRO CON L’ARCO',
+            'PALLAVOLO', 'CORSA DEI SACCHI', 'CERCA IL TESORO'
+        ];
+
+        function initializeApp() {
+            if (!localStorage.getItem('disciplines')) {
+                disciplineList.forEach(discipline => {
+                    disciplines[discipline] = { gold: null, silver: null, bronze: null };
+                });
+                saveData();
+            }
+            renderDisciplines();
+            updateLeaderboard();
+        }
+
+        function addTeam() {
+            const teamName = document.getElementById('teamName').value.trim();
+            if (!teamName) return;
+
+            if (teams.some(t => t.name.toLowerCase() === teamName.toLowerCase())) {
+                alert('Team name already exists!');
+                return;
+            }
+
+            teams.push({
+                name: teamName,
+                gold: 0,
+                silver: 0,
+                bronze: 0,
+                points: 0
+            });
+
+            document.getElementById('teamName').value = '';
+            saveData();
+            renderDisciplines();
+            updateLeaderboard();
+        }
+
+        function renderDisciplines() {
+            const container = document.getElementById('disciplinesContainer');
+            container.innerHTML = disciplineList.map(discipline => `
+                <div class="discipline">
+                    <h3>${discipline}</h3>
+                    <div class="grid">
+                        <div>
+                            <label>Gold:</label>
+                            <select onchange="updateMedal('${discipline}', 'gold', this.value)">
+                                ${getTeamOptions(disciplines[discipline].gold)}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Silver:</label>
+                            <select onchange="updateMedal('${discipline}', 'silver', this.value)">
+                                ${getTeamOptions(disciplines[discipline].silver)}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Bronze:</label>
+                            <select onchange="updateMedal('${discipline}', 'bronze', this.value)">
+                                ${getTeamOptions(disciplines[discipline].bronze)}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getTeamOptions(selectedTeam) {
+            return `<option value="">Select Team</option>
+                ${teams.map(team => `
+                    <option value="${team.name}" ${team.name === selectedTeam ? 'selected' : ''}>
+                        ${team.name}
+                    </option>
+                `).join('')}`;
+        }
+
+        function updateMedal(discipline, medalType, teamName) {
+            // Remove previous medals
+            teams.forEach(team => {
+                if (team.name === disciplines[discipline][medalType]) {
+                    team[medalType]--;
+                }
+            });
+
+            // Update new medal
+            if (teamName) {
+                const team = teams.find(t => t.name === teamName);
+                if (team) team[medalType]++;
+                disciplines[discipline][medalType] = teamName;
+            } else {
+                disciplines[discipline][medalType] = null;
+            }
+
+            updatePoints();
+            saveData();
+            updateLeaderboard();
+        }
+
+        function updatePoints() {
+            teams.forEach(team => {
+                team.points = (team.gold * 4) + (team.silver * 2) + (team.bronze * 1);
+            });
+        }
+
+        function updateLeaderboard() {
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = teams.sort((a, b) => 
+                b.points - a.points || 
+                b.gold - a.gold || 
+                b.silver - a.silver || 
+                b.bronze - a.bronze
+            ).map(team => `
+                <tr>
+                    <td>${team.name}</td>
+                    <td>${team.points}</td>
+                    <td>${team.gold}</td>
+                    <td>${team.silver}</td>
+                    <td>${team.bronze}</td>
+                </tr>
+            `).join('');
+        }
+
+        function showRule(rule) {
+            document.querySelectorAll('.rules-section').forEach(div => {
+                div.classList.remove('active-rule');
+            });
+            document.getElementById(rule + 'Rule').classList.add('active-rule');
+        }
+
+        function saveData() {
+            localStorage.setItem('teams', JSON.stringify(teams));
+            localStorage.setItem('disciplines', JSON.stringify(disciplines));
+        }
+
+        // Start the application
+        initializeApp();
+    </script>
+</body>
+</html>
