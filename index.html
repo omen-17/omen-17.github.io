@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Alcoolimpiadi</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
-    
     :root {
       --primary: #2c3e50;
       --secondary: #3498db;
@@ -89,7 +90,6 @@
       background: #fff;
       margin: 1rem 0;
     }
-    /* Stili per il calendario a schede */
     .tabs {
       margin-bottom: 1rem;
     }
@@ -121,7 +121,6 @@
       border-left: 3px solid var(--secondary);
       display: block;
     }
-    /* Stili per la classifica live */
     #leaderboard {
       width: 100%;
       border-collapse: collapse;
@@ -141,7 +140,6 @@
   </div>
 
   <div class="grid">
-    <!-- Team Management -->
     <div class="card">
       <h2>Gestione Squadre</h2>
       <div class="team-management">
@@ -149,40 +147,39 @@
         <button onclick="addTeam()">Aggiungere Nuova Squadra</button>
       </div>
     </div>
-    <!-- Rules Selector -->
-    <div class="card">
-        <h2>Regolamento</h2>
 
-        <div id="generalRule" class="rules-section active-rule">
-          <h3>Regole generali</h3>
-          <ul>
-            <li>4 partecipanti per squadra</li>
-            <li>9 discipline</li>
-            <li>Infinito divertimento</li>
-          </ul>
-        </div>
-        <div id="alcoholRule" class="rules-section">
-          <h3>Regole alcoliche</h3>
-          <ul>
-            <li>1 shot = ½ bicchiere di vino = 1 birra</li>
-            <li>Va finito completamente</li>
-            <li>Il valore degli shot dipende dalla gara</li>
-          </ul>
-        </div>
-        <div id="scoringRule" class="rules-section">
-          <h3>Punteggi</h3>
-          <ul>
-            <li>Oro 🥇: 4 punti</li>
-            <li>Argento 🥈: 2 punti</li>
-            <li>Bronzo 🥉: 1 punto</li>
-          </ul>
-        </div>
+    <div class="card">
+      <h2>Regolamento</h2>
+      <div id="generalRule" class="rules-section active-rule">
+        <h3>Regole generali</h3>
+        <ul>
+          <li>4 partecipanti per squadra</li>
+          <li>9 discipline</li>
+          <li>Infinito divertimento</li>
+        </ul>
+      </div>
+      <div id="alcoholRule" class="rules-section">
+        <h3>Regole alcoliche</h3>
+        <ul>
+          <li>1 shot = ½ bicchiere di vino = 1 birra</li>
+          <li>Va finito completamente</li>
+          <li>Il valore degli shot dipende dalla gara</li>
+        </ul>
+      </div>
+      <div id="scoringRule" class="rules-section">
+        <h3>Punteggi</h3>
+        <ul>
+          <li>Oro 🥇: 4 punti</li>
+          <li>Argento 🥈: 2 punti</li>
+          <li>Bronzo 🥉: 1 punto</li>
+        </ul>
       </div>
     </div>
-  
+  </div>
 
-  <!-- Calendario gare con pagine separate per i giorni -->
-  <div class="card">
+
+
+ <div class="card">
     <h2>Calendario gare</h2>
     <div class="tabs">
       <button onclick="showDay('day1')">Giorno 1</button>
@@ -334,14 +331,11 @@
       </div>
     </div>
   </div>
-
-  <!-- Discipline Results -->
   <div class="card">
     <h2>Risultati</h2>
     <div id="disciplinesContainer"></div>
   </div>
 
-  <!-- Leaderboard -->
   <div class="card">
     <h2>Classifica Live</h2>
     <table id="leaderboard">
@@ -359,9 +353,21 @@
   </div>
 
   <script>
-    let teams = JSON.parse(localStorage.getItem('teams')) || [];
-    let disciplines = JSON.parse(localStorage.getItem('disciplines')) || {};
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlPu81AaDsPaXGpOBM2q7AicE9Zb5CULE",
+      authDomain: "olimpiadi-bb316.firebaseapp.com",
+      projectId: "olimpiadi-bb316",
+      storageBucket: "olimpiadi-bb316.firebasestorage.app",
+      messagingSenderId: "294002399950",
+      appId: "1:294002399950:web:c1e6acc74b7f849ab00e9f",
+      measurementId: "G-ELHHLVK9X8"
+    };
 
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let teams = [];
+    let disciplines = {};
     const disciplineList = [
       'STAFFETTA ALCOLICA', 'TIRO AL CANESTRO ALCOLICO', 
       'LA COPPIA CHE SCOPPIA', 'FRECCETTE', 'GARA DI SHOT',
@@ -369,35 +375,88 @@
       'PALLAVOLO', 'CORSA DEI SACCHI', 'CERCA IL TESORO'
     ];
 
-    function initializeApp() {
-      if (!localStorage.getItem('disciplines')) {
-        disciplineList.forEach(discipline => {
-          disciplines[discipline] = { gold: null, silver: null, bronze: null };
+    async function initializeApp() {
+      const teamsSnapshot = await db.collection('teams').get();
+      teams = teamsSnapshot.docs.map(doc => doc.data());
+      
+      const disciplinesSnapshot = await db.collection('disciplines').get();
+      disciplinesSnapshot.forEach(doc => {
+        disciplines[doc.id] = doc.data();
+      });
+
+      if (disciplinesSnapshot.empty) {
+        const defaultDiscipline = { gold: null, silver: null, bronze: null };
+        disciplineList.forEach(async (name) => {
+          await db.collection('disciplines').doc(name).set(defaultDiscipline);
+          disciplines[name] = defaultDiscipline;
         });
-        saveData();
       }
+
+      db.collection('teams').onSnapshot(snapshot => {
+        teams = snapshot.docs.map(doc => doc.data());
+        renderDisciplines();
+        updateLeaderboard();
+      });
+
+      db.collection('disciplines').onSnapshot(snapshot => {
+        snapshot.forEach(doc => {
+          disciplines[doc.id] = doc.data();
+        });
+        renderDisciplines();
+        updateLeaderboard();
+      });
+
       renderDisciplines();
       updateLeaderboard();
     }
 
-    function addTeam() {
+    async function addTeam() {
       const teamName = document.getElementById('teamName').value.trim();
       if (!teamName) return;
+      
       if (teams.some(t => t.name.toLowerCase() === teamName.toLowerCase())) {
         alert('Coglione qualcuno ha già messo questo nome!');
         return;
       }
-      teams.push({
+
+      const newTeam = {
         name: teamName,
         gold: 0,
         silver: 0,
         bronze: 0,
         points: 0
-      });
+      };
+
+      await db.collection('teams').doc(teamName).set(newTeam);
       document.getElementById('teamName').value = '';
-      saveData();
-      renderDisciplines();
-      updateLeaderboard();
+    }
+
+    async function updateMedal(discipline, medalType, teamName) {
+      const oldTeamName = disciplines[discipline][medalType];
+      
+      if (oldTeamName) {
+        const oldTeam = teams.find(t => t.name === oldTeamName);
+        if (oldTeam) {
+          oldTeam[medalType]--;
+          oldTeam.points = calculatePoints(oldTeam);
+          await db.collection('teams').doc(oldTeamName).update(oldTeam);
+        }
+      }
+
+      if (teamName) {
+        const newTeam = teams.find(t => t.name === teamName);
+        newTeam[medalType]++;
+        newTeam.points = calculatePoints(newTeam);
+        await db.collection('teams').doc(teamName).update(newTeam);
+      }
+
+      await db.collection('disciplines').doc(discipline).update({
+        [medalType]: teamName || null
+      });
+    }
+
+    function calculatePoints(team) {
+      return (team.gold * 4) + (team.silver * 2) + (team.bronze * 1);
     }
 
     function renderDisciplines() {
@@ -409,19 +468,19 @@
             <div>
               <label>Oro:</label>
               <select onchange="updateMedal('${discipline}', 'gold', this.value)">
-                ${getTeamOptions(disciplines[discipline].gold)}
+                ${getTeamOptions(disciplines[discipline]?.gold)}
               </select>
             </div>
             <div>
               <label>Argento:</label>
               <select onchange="updateMedal('${discipline}', 'silver', this.value)">
-                ${getTeamOptions(disciplines[discipline].silver)}
+                ${getTeamOptions(disciplines[discipline]?.silver)}
               </select>
             </div>
             <div>
               <label>Bronzo:</label>
               <select onchange="updateMedal('${discipline}', 'bronze', this.value)">
-                ${getTeamOptions(disciplines[discipline].bronze)}
+                ${getTeamOptions(disciplines[discipline]?.bronze)}
               </select>
             </div>
           </div>
@@ -436,30 +495,6 @@
             ${team.name}
           </option>
         `).join('')}`;
-    }
-
-    function updateMedal(discipline, medalType, teamName) {
-      teams.forEach(team => {
-        if (team.name === disciplines[discipline][medalType]) {
-          team[medalType]--;
-        }
-      });
-      if (teamName) {
-        const team = teams.find(t => t.name === teamName);
-        if (team) team[medalType]++;
-        disciplines[discipline][medalType] = teamName;
-      } else {
-        disciplines[discipline][medalType] = null;
-      }
-      updatePoints();
-      saveData();
-      updateLeaderboard();
-    }
-
-    function updatePoints() {
-      teams.forEach(team => {
-        team.points = (team.gold * 4) + (team.silver * 2) + (team.bronze * 1);
-      });
     }
 
     function updateLeaderboard() {
@@ -480,24 +515,11 @@
       `).join('');
     }
 
-    function showRule(rule) {
-      document.querySelectorAll('.rules-section').forEach(div => {
-        div.classList.remove('active-rule');
-      });
-      document.getElementById(rule + 'Rule').classList.add('active-rule');
-    }
-
-    function saveData() {
-      localStorage.setItem('teams', JSON.stringify(teams));
-      localStorage.setItem('disciplines', JSON.stringify(disciplines));
-    }
-
     function showDay(day) {
       document.getElementById('day1').style.display = (day === 'day1') ? 'block' : 'none';
       document.getElementById('day2').style.display = (day === 'day2') ? 'block' : 'none';
     }
 
-    // Avvia l'applicazione
     initializeApp();
   </script>
 </body>
