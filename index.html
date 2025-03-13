@@ -6,134 +6,317 @@
   <title>Alcoolimpiadi</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #2c3e50;
-      --secondary: #3498db;
+      --primary: #2A2D34;
+      --secondary: #009DDC;
+      --accent: #F26430;
+      --light: #F8F9FA;
+      --dark: #1A1C23;
+      --gradient: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
     }
+    
     body {
-      font-family: 'Arial', sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
-      background: #f8f9fa;
+      background: var(--light);
+      line-height: 1.6;
+      color: var(--primary);
     }
+
     .header {
       text-align: center;
-      padding: 2rem;
-      background: var(--primary);
+      padding: 4rem 2rem;
+      background: var(--gradient);
       color: white;
-      border-radius: 10px;
+      border-radius: 20px;
       margin-bottom: 2rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
     }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent 0%, rgba(255,255,255,0.1) 100%);
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      margin: 0;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 1;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 2rem;
+      margin-bottom: 2rem;
     }
+
     .card {
       background: white;
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 5px 25px -5px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+      border-left: 6px solid var(--secondary);
+      position: relative;
+      overflow: hidden;
     }
-    .team-management {
-      margin-bottom: 2rem;
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 40px -10px rgba(0,0,0,0.15);
     }
-    input,
-    select,
-    button {
-      padding: 0.8rem;
-      margin: 0.5rem 0;
-      border: 1px solid #ddd;
-      border-radius: 5px;
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
+      height: 4px;
+      background: var(--gradient);
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    /* Improved input fields */
+    input, select, button {
+      padding: 1rem;
+      margin: 0.5rem 0;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      width: 100%;
+      font-size: 1rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: white;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--secondary);
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(0,157,220,0.1);
+      background: #f8fcff;
+    }
+
     button {
       background: var(--secondary);
       color: white;
       border: none;
       cursor: pointer;
-      transition: opacity 0.3s;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+      background-image: linear-gradient(to right, var(--secondary) 0%, #0077b6 100%);
     }
+
+    button::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.6s;
+    }
+
+    button:hover::after {
+      left: 100%;
+    }
+
     button:hover {
-      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,157,220,0.3);
     }
+
+    /* Enhanced medal styling */
     .medal {
-      display: inline-block;
-      width: 25px;
-      height: 25px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      text-align: center;
-      line-height: 25px;
-      font-size: 0.8rem;
-      margin: 0 2px;
+      font-size: 1rem;
+      margin: 0 5px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      position: relative;
     }
-    .gold {
-      background: #ffd700;
+
+    .gold { 
+      background: linear-gradient(145deg, #FFD700 0%, #FFC000 100%);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
-    .silver {
-      background: #c0c0c0;
+
+    .silver { 
+      background: linear-gradient(145deg, #e5e5e5 0%, #bdbdbd 100%);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
-    .bronze {
-      background: #cd7f32;
+
+    .bronze { 
+      background: linear-gradient(145deg, #cd7f32 0%, #b56c24 100%);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
-    .discipline {
-      margin: 1rem 0;
-      padding: 1rem;
-      border: 1px solid #eee;
-      border-radius: 5px;
-    }
-    .rules-section {
-      padding: 1rem;
-      background: #fff;
-      margin: 1rem 0;
-    }
-    .tabs {
-      margin-bottom: 1rem;
-    }
-    .tabs button {
-      margin: 0.5rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      background: var(--secondary);
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    .day-content {
-      display: none;
-    }
+
+    /* Improved game cards */
     .game {
-      margin-bottom: 1rem;
-      padding: 1rem;
-      border: 1px solid #eee;
-      border-radius: 5px;
+      margin-bottom: 2rem;
+      padding: 2rem;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 5px 20px -5px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+      border-left: 4px solid var(--accent);
     }
+
+    .game:hover {
+      transform: translateX(5px);
+    }
+
     .game h3 {
+      color: var(--primary);
       margin-top: 0;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    .game-rules {
-      margin-top: 0.5rem;
-      padding: 0.5rem;
-      background: #f0f0f0;
-      border-left: 3px solid var(--secondary);
-      display: block;
+
+    .game h3::before {
+      content: '🏆';
+      font-size: 1.2em;
     }
+
+    /* Modern table styling */
     #leaderboard {
       width: 100%;
       border-collapse: collapse;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px -5px rgba(0,0,0,0.05);
     }
+
     #leaderboard th,
     #leaderboard td {
-      padding: 10px;
+      padding: 16px 20px;
       text-align: center;
-      border: 1px solid #ddd;
+      border-bottom: 1px solid #f1f5f9;
     }
-  </style>
+
+    #leaderboard th {
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    #leaderboard tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    #leaderboard tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    /* Enhanced tabs */
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: #f8fafc;
+      padding: 8px;
+      border-radius: 12px;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 1rem;
+      background: transparent;
+      color: var(--dark);
+      border: none;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .tabs button:hover {
+      background: rgba(0,157,220,0.1);
+    }
+
+    .tabs button.active-tab {
+      background: var(--secondary);
+      color: white;
+      box-shadow: 0 4px 6px rgba(0,157,220,0.1);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2.2rem;
+      }
+      
+      .card {
+        padding: 1.5rem;
+        border-radius: 16px;
+      }
+      
+      #leaderboard th,
+      #leaderboard td {
+        padding: 12px 15px;
+      }
+    }
+
+    /* Loading animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card, .game {
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    /* Improved delete button */
+    .delete-btn {
+      background: #ff4444;
+      background-image: linear-gradient(to right, #ff4444 0%, #cc0000 100%);
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .delete-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 3px 10px rgba(255,68,68,0.2);
+    }
+</style>
 </head>
 <body>
+
   <div class="header">
     <h1>🍻 BENVENUTI ALLE ALCOOLIMPIADI 🥇</h1>
     <p></p>
@@ -144,7 +327,11 @@
       <h2>Gestione Squadre</h2>
       <div class="team-management">
         <input type="text" id="teamName" placeholder="Inserire nome squadra" />
-        <button onclick="addTeam()">Aggiungere Nuova Squadra</button>
+        <button onclick="addTeam()">Aggiungi Nuova Squadra</button>
+        <div style="margin-top: 1rem;">
+          <h3>Squadre Registrate:</h3>
+          <div id="teamsContainer" style="display: grid; gap: 0.5rem; margin-top: 1rem;"></div>
+        </div>
       </div>
     </div>
 
@@ -396,6 +583,7 @@
         teams = snapshot.docs.map(doc => doc.data());
         renderDisciplines();
         updateLeaderboard();
+        renderTeamList();
       });
 
       db.collection('disciplines').onSnapshot(snapshot => {
@@ -426,6 +614,9 @@
         bronze: 0,
         points: 0
       };
+
+
+      
 
       await db.collection('teams').doc(teamName).set(newTeam);
       document.getElementById('teamName').value = '';
@@ -515,11 +706,53 @@
       `).join('');
     }
 
-    function showDay(day) {
+function showDay(day) {
       document.getElementById('day1').style.display = (day === 'day1') ? 'block' : 'none';
       document.getElementById('day2').style.display = (day === 'day2') ? 'block' : 'none';
+      
+      // Aggiungi la classe active-tab al bottone cliccato
+      document.querySelectorAll('.tabs button').forEach(btn => {
+        btn.classList.remove('active-tab');
+        if (btn.onclick.toString().includes(day)) {
+          btn.classList.add('active-tab');
+        }
+      });
     }
 
+
+    function renderTeamList() {
+      const container = document.getElementById('teamsContainer');
+      container.innerHTML = teams.map(team => `
+        <div class="team-item">
+          <span>${team.name}</span>
+          <button class="delete-btn" onclick="deleteTeam('${team.name}')">Elimina</button>
+        </div>
+      `).join('');
+    }
+
+    async function deleteTeam(teamName) {
+      if (!confirm(`Sei sicuro di voler eliminare la squadra ${teamName}? Tutti i loro risultati verranno rimossi!`)) return;
+      
+      // Remove team from Firestore
+      await db.collection('teams').doc(teamName).delete();
+      
+      // Remove any medals associated with this team
+      const updates = [];
+      Object.keys(disciplines).forEach(discipline => {
+        const disciplineData = disciplines[discipline];
+        Object.keys(disciplineData).forEach(medalType => {
+          if (disciplineData[medalType] === teamName) {
+            updates.push(
+              db.collection('disciplines').doc(discipline).update({
+                [medalType]: null
+              })
+            );
+          }
+        });
+      });
+      
+      await Promise.all(updates);
+    }
     initializeApp();
   </script>
 </body>
