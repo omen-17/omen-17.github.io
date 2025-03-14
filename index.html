@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>Alcoolimpiadi</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -318,6 +318,86 @@
       transform: scale(1.05);
       box-shadow: 0 3px 10px rgba(255,68,68,0.2);
     }
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      
+      .header {
+        padding: 2rem 1rem;
+        border-radius: 15px;
+      }
+      
+      .header h1 {
+        font-size: 1.8rem;
+        line-height: 1.2;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      
+      .card {
+        padding: 1.2rem;
+        border-radius: 15px;
+      }
+      
+      .tabs {
+        flex-direction: column;
+      }
+      
+      .tabs button {
+        width: 100%;
+        padding: 0.8rem;
+        font-size: 0.9rem;
+      }
+      
+      .game {
+        padding: 1.2rem;
+      }
+      
+      .game h3 {
+        font-size: 1.2rem;
+        flex-wrap: wrap;
+      }
+      
+      #leaderboard th,
+      #leaderboard td {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+      }
+      
+      .medal {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+      }
+      
+      .team-management input,
+      .team-management button {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+      }
+      
+      .delete-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    /* Improved touch targets */
+    button, input, select {
+      touch-action: manipulation;
+    }
+    
+    /* Prevent zoom on input focus */
+    @media screen and (max-width: 768px) {
+      input, select {
+        font-size: 16px;
+      }
+    }
+  
 </style>
 </head>
 <body>
@@ -335,7 +415,7 @@
         <button onclick="addTeam()">Aggiungi Nuova Squadra</button>
         <div style="margin-top: 1rem;">
           <h3>Squadre Registrate:</h3>
-          <div id="teamsContainer" style="display: grid; gap: 0.5rem; margin-top: 1rem;"></div>
+          <div id="teamsContainer" style="display: grid; gap: 0.8rem; margin-top: 1rem;"></div>
         </div>
       </div>
     </div>
