@@ -6,7 +6,9 @@
   <title>Alcoolimpiadi</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
     :root {
       --primary: #2A2D34;
@@ -15,6 +17,8 @@
       --light: #F8F9FA;
       --dark: #1A1C23;
       --gradient: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
+      --error: #ff4444;
+      --success: #00C851;
     }
     
     body {
@@ -58,6 +62,78 @@
       z-index: 1;
     }
 
+    .auth-status {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .auth-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .auth-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .auth-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+      position: relative;
+      transform: translateY(-20px);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .auth-modal.active .auth-content {
+      transform: translateY(0);
+    }
+
+    .auth-errors {
+      color: var(--error);
+      margin-bottom: 1rem;
+      min-height: 20px;
+      text-align: center;
+      padding: 0.5rem;
+      border-radius: 8px;
+      background-color: rgba(255, 68, 68, 0.1);
+    }
+
+    .auth-success {
+      color: var(--success);
+      margin-bottom: 1rem;
+      min-height: 20px;
+      text-align: center;
+      padding: 0.5rem;
+      border-radius: 8px;
+      background-color: rgba(0, 200, 81, 0.1);
+    }
+
+    .admin-only {
+      display: none;
+    }
+
+    .admin-visible .admin-only {
+      display: block;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -97,7 +173,6 @@
       opacity: 1;
     }
 
-    /* Improved input fields */
     input, select, button {
       padding: 1rem;
       margin: 0.5rem 0;
@@ -149,7 +224,6 @@
       box-shadow: 0 5px 15px rgba(0,157,220,0.3);
     }
 
-    /* Enhanced medal styling */
     .medal {
       display: inline-flex;
       align-items: center;
@@ -178,7 +252,6 @@
       text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
-    /* Improved game cards */
     .game {
       margin-bottom: 2rem;
       padding: 2rem;
@@ -207,7 +280,6 @@
       font-size: 1.2em;
     }
 
-    /* Modern table styling */
     #leaderboard {
       width: 100%;
       border-collapse: collapse;
@@ -240,7 +312,6 @@
       background-color: #f1f5f9;
     }
 
-    /* Enhanced tabs */
     .tabs {
       display: flex;
       gap: 1rem;
@@ -271,6 +342,81 @@
       box-shadow: 0 4px 6px rgba(0,157,220,0.1);
     }
 
+    .delete-btn {
+      background: #ff4444;
+      background-image: linear-gradient(to right, #ff4444 0%, #cc0000 100%);
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .delete-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 3px 10px rgba(255,68,68,0.2);
+    }
+
+    /* Auth mode toggle */
+    .auth-mode-toggle {
+      text-align: center;
+      margin: 1rem 0;
+    }
+    
+    .auth-mode-toggle button {
+      background: none;
+      border: none;
+      color: var(--secondary);
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0.5rem;
+      text-transform: none;
+      letter-spacing: normal;
+      font-weight: normal;
+      width: auto;
+    }
+
+    .password-container {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--primary);
+      padding: 0.5rem;
+    }
+
+    .loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+      transform: translate(-50%, -50%);
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
       .header h1 {
@@ -293,31 +439,6 @@
       }
     }
 
-    /* Loading animation */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .card, .game {
-      animation: fadeIn 0.6s ease forwards;
-    }
-
-    /* Improved delete button */
-    .delete-btn {
-      background: #ff4444;
-      background-image: linear-gradient(to right, #ff4444 0%, #cc0000 100%);
-      color: white;
-      padding: 0.5rem 1.2rem;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      font-weight: 500;
-    }
-
-    .delete-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 3px 10px rgba(255,68,68,0.2);
-    }
     @media (max-width: 480px) {
       body {
         padding: 10px;
@@ -386,75 +507,94 @@
       }
     }
 
-    /* Improved touch targets */
-    button, input, select {
-      touch-action: manipulation;
-    }
-    
     /* Prevent zoom on input focus */
     @media screen and (max-width: 768px) {
       input, select {
         font-size: 16px;
       }
     }
-  
-</style>
+  </style>
 </head>
 <body>
-
-  <div class="header">
-    <h1>🍻 BENVENUTI ALLE ALCOOLIMPIADI 🥇</h1>
-    <p></p>
+  <div id="authModal" class="auth-modal">
+    <div class="auth-content">
+      <h2 id="authTitle">Accesso</h2>
+      <div class="auth-errors" id="authErrors"></div>
+      <div class="auth-success" id="authSuccess" style="display:none;"></div>
+      <input type="email" id="email" placeholder="Email" />
+      <div class="password-container">
+        <input type="password" id="password" placeholder="Password" />
+        <button class="toggle-password" onclick="togglePasswordVisibility('password')">👁️</button>
+      </div>
+      <div class="password-container">
+        <input type="password" id="passwordConfirm" placeholder="Conferma Password" style="display:none;" />
+        <button class="toggle-password" onclick="togglePasswordVisibility('passwordConfirm')" style="display:none;">👁️</button>
+      </div>
+      <div class="auth-mode-toggle">
+        <span id="modePrompt">Non hai un account? </span>
+        <button id="toggleModeButton" onclick="toggleAuthMode()">Registrati</button>
+      </div>
+      <button id="authActionButton" onclick="handleAuth()">Accedi</button>
+      <button onclick="toggleAuthModal()" class="auth-close">Chiudi</button>
+    </div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <h2>Gestione Squadre</h2>
-      <div class="team-management">
-        <input type="text" id="teamName" placeholder="Inserire nome squadra" />
-        <button onclick="addTeam()">Aggiungi Nuova Squadra</button>
-        <div style="margin-top: 1rem;">
-          <h3>Squadre Registrate:</h3>
-          <div id="teamsContainer" style="display: grid; gap: 0.8rem; margin-top: 1rem;"></div>
+  <div class="header">
+    <div class="auth-status">
+      <span id="userEmail"></span>
+      <button id="authButton" onclick="toggleAuthModal()">Accedi</button>
+    </div>
+    <h1>🍻 BENVENUTI ALLE ALCOOLIMPIADI 🥇</h1>
+  </div>
+
+  <div class="admin-only">
+    <div class="grid">
+      <div class="card">
+        <h2>Gestione Squadre</h2>
+        <div class="team-management">
+          <input type="text" id="teamName" placeholder="Inserire nome squadra" />
+          <button onclick="addTeam()">Aggiungi Nuova Squadra</button>
+          <div style="margin-top: 1rem;">
+            <h3>Squadre Registrate:</h3>
+            <div id="teamsContainer" style="display: grid; gap: 0.8rem; margin-top: 1rem;"></div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="card">
-      <h2>Regolamento</h2>
-      <div id="generalRule" class="rules-section active-rule">
-        <h3>Regole generali</h3>
-        <ul>
-          <li>4 partecipanti per squadra</li>
-          <li>9 discipline</li>
-          <li>Infinito divertimento</li>
-        </ul>
-      </div>
-      <div id="alcoholRule" class="rules-section">
-        <h3>Regole alcoliche</h3>
-        <ul>
-          <li>1 shot = ½ bicchiere di vino = 1 birra</li>
-          <li>Va finito completamente</li>
-          <li>Il valore degli shot dipende dalla gara</li>
-        </ul>
-      </div>
-      <div id="scoringRule" class="rules-section">
-        <h3>Punteggi</h3>
-        <ul>
-          <li>Oro 🥇: 4 punti</li>
-          <li>Argento 🥈: 2 punti</li>
-          <li>Bronzo 🥉: 1 punto</li>
-        </ul>
-      </div>
+  <div class="card">
+    <h2>Regolamento</h2>
+    <div id="generalRule" class="rules-section active-rule">
+      <h3>Regole generali</h3>
+      <ul>
+        <li>4 partecipanti per squadra</li>
+        <li>9 discipline</li>
+        <li>Infinito divertimento</li>
+      </ul>
+    </div>
+    <div id="alcoholRule" class="rules-section">
+      <h3>Regole alcoliche</h3>
+      <ul>
+        <li>1 shot = ½ bicchiere di vino = 1 birra</li>
+        <li>Va finito completamente</li>
+        <li>Il valore degli shot dipende dalla gara</li>
+      </ul>
+    </div>
+    <div id="scoringRule" class="rules-section">
+      <h3>Punteggi</h3>
+      <ul>
+        <li>Oro 🥇: 4 punti</li>
+        <li>Argento 🥈: 2 punti</li>
+        <li>Bronzo 🥉: 1 punto</li>
+      </ul>
     </div>
   </div>
 
-
-
- <div class="card">
+  <div class="card">
     <h2>Calendario gare</h2>
     <div class="tabs">
-      <button onclick="showDay('day1')">Giorno 1</button>
+      <button class="active-tab" onclick="showDay('day1')">Giorno 1</button>
       <button onclick="showDay('day2')">Giorno 2</button>
     </div>
     <!-- Giorno 1 -->
@@ -464,7 +604,7 @@
         <div class="game-rules">
           <ul>
             <li>Ogni concorrente, prima di partire, deve bere e correre alla postazione successiva per passare il testimone.</li>
-            <li>Il tempo parte quando il primo inizia a bere e si stoppa quando l’ultimo posa il testimone.</li>
+            <li>Il tempo parte quando il primo inizia a bere e si stoppa quando l'ultimo posa il testimone.</li>
             <li>Le squadre parteciperanno una alla volta.</li>
           </ul>
           <p><strong>Vince</strong> la squadra che ci impiega meno tempo.</p>
@@ -487,7 +627,7 @@
         <div class="game-rules">
           <ul>
             <li>Partecipano tutti i membri divisi in coppie.</li>
-            <li>Una coppia alla volta: un membro bendato, l’altro che guida senza toccarlo lungo il percorso ad ostacoli.</li>
+            <li>Una coppia alla volta: un membro bendato, l'altro che guida senza toccarlo lungo il percorso ad ostacoli.</li>
             <li>Il membro che guida deve bere prima di iniziare (il bendato no).</li>
             <li>Le indicazioni possono essere date anche da altri compagni in attesa.</li>
             <li>Quando la prima coppia arriva alla fine, torna indietro e poi parte la successiva.</li>
@@ -526,7 +666,7 @@
       </div>
     </div>
     <!-- Giorno 2 -->
-    <div id="day2" class="day-content">
+    <div id="day2" class="day-content" style="display:none;">
       <div class="game">
         <h3>TIRO AL BERSAGLIO</h3>
         <div class="game-rules">
@@ -552,7 +692,7 @@
         </div>
       </div>
       <div class="game">
-        <h3>TIRO CON L’ARCO</h3>
+        <h3>TIRO CON L'ARCO</h3>
         <div class="game-rules">
           <ul>
             <li>Tutti i componenti partecipano.</li>
@@ -603,6 +743,7 @@
       </div>
     </div>
   </div>
+
   <div class="card">
     <h2>Risultati</h2>
     <div id="disciplinesContainer"></div>
@@ -610,46 +751,202 @@
 
   <div class="card">
     <h2>Classifica Live</h2>
-    <div class  = "table-container">
-    <table id="leaderboard">
-      <thead>
-        <tr>
-          <th>Squadra</th>
-          <th>Punti</th>
-          <th>Oro</th>
-          <th>Argento</th>
-          <th>Bronzo</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboardBody"></tbody>
-    </table>
+    <div class="table-container">
+      <table id="leaderboard">
+        <thead>
+          <tr>
+            <th>Squadra</th>
+            <th>Punti</th>
+            <th>Oro</th>
+            <th>Argento</th>
+            <th>Bronzo</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+    </div>
   </div>
-</div>
 
   <script>
+    // Firebase configuration - REPLACE WITH YOUR OWN
     const firebaseConfig = {
       apiKey: "AIzaSyDlPu81AaDsPaXGpOBM2q7AicE9Zb5CULE",
       authDomain: "olimpiadi-bb316.firebaseapp.com",
       projectId: "olimpiadi-bb316",
-      storageBucket: "olimpiadi-bb316.firebasestorage.app",
+      storageBucket: "olimpiadi-bb316.appspot.com",
       messagingSenderId: "294002399950",
       appId: "1:294002399950:web:c1e6acc74b7f849ab00e9f",
       measurementId: "G-ELHHLVK9X8"
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
+    // App state
+    let currentUser = null;
+    let isLoginMode = true;
+    let authProcessing = false;
     let teams = [];
     let disciplines = {};
     const disciplineList = [
       'STAFFETTA ALCOLICA', 'TIRO AL CANESTRO ALCOLICO', 
       'LA COPPIA CHE SCOPPIA', 'FRECCETTE', 'GARA DI SHOT',
-      'TIRO AL BERSAGLIO', 'TIRO ALLA FUNE', 'TIRO CON L’ARCO',
+      'TIRO AL BERSAGLIO', 'TIRO ALLA FUNE', 'TIRO CON L\'ARCO',
       'PALLAVOLO', 'CORSA DEI SACCHI', 'CERCA IL TESORO'
     ];
 
+    // DOM Ready
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeApp();
+    });
+
+    // Auth functions
+    function toggleAuthModal() {
+      const modal = document.getElementById('authModal');
+      if (modal.classList.contains('active')) {
+        modal.classList.remove('active');
+        setTimeout(() => modal.style.display = 'none', 300);
+      } else {
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+      }
+    }
+
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      const title = document.getElementById('authTitle');
+      const prompt = document.getElementById('modePrompt');
+      const toggleBtn = document.getElementById('toggleModeButton');
+      const actionBtn = document.getElementById('authActionButton');
+      const confirmField = document.getElementById('passwordConfirm');
+      const confirmToggle = document.querySelector('#passwordConfirm + .toggle-password');
+
+      if (isLoginMode) {
+        title.textContent = 'Accesso';
+        prompt.textContent = 'Non hai un account? ';
+        toggleBtn.textContent = 'Registrati';
+        actionBtn.textContent = 'Accedi';
+        confirmField.style.display = 'none';
+        confirmToggle.style.display = 'none';
+      } else {
+        title.textContent = 'Registrazione';
+        prompt.textContent = 'Hai già un account? ';
+        toggleBtn.textContent = 'Accedi';
+        actionBtn.textContent = 'Registrati';
+        confirmField.style.display = 'block';
+        confirmToggle.style.display = 'block';
+      }
+    }
+
+    function togglePasswordVisibility(fieldId) {
+      const field = document.getElementById(fieldId);
+      field.type = field.type === 'password' ? 'text' : 'password';
+    }
+
+    async function handleAuth() {
+      if (authProcessing) return;
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const confirmPassword = document.getElementById('passwordConfirm').value.trim();
+
+      // Validation
+      if (!email || !password) {
+        showAuthError('Email e password sono obbligatorie!');
+        return;
+      }
+
+      if (!isLoginMode && password !== confirmPassword) {
+        showAuthError('Le password non coincidono!');
+        return;
+      }
+
+      const authBtn = document.getElementById('authActionButton');
+      authBtn.classList.add('loading');
+      authProcessing = true;
+
+      try {
+        if (isLoginMode) {
+          await auth.signInWithEmailAndPassword(email, password);
+          showAuthSuccess('Accesso effettuato con successo!');
+        } else {
+          const { user } = await auth.createUserWithEmailAndPassword(email, password);
+          await db.collection('users').doc(user.uid).set({
+            email: user.email,
+            role: 'spectator',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          showAuthSuccess('Registrazione completata!');
+        }
+        setTimeout(toggleAuthModal, 1500);
+      } catch (error) {
+        handleAuthError(error);
+      } finally {
+        authBtn.classList.remove('loading');
+        authProcessing = false;
+      }
+    }
+
+    function handleAuthError(error) {
+      const messages = {
+        'auth/email-already-in-use': 'Email già registrata!',
+        'auth/invalid-email': 'Email non valida!',
+        'auth/weak-password': 'Password troppo debole (min 6 caratteri)',
+        'auth/wrong-password': 'Password errata!',
+        'auth/user-not-found': 'Utente non trovato!',
+        'auth/too-many-requests': 'Troppi tentativi. Riprova più tardi.'
+      };
+      showAuthError(messages[error.code] || error.message);
+    }
+
+    function showAuthError(message) {
+      const errorDiv = document.getElementById('authErrors');
+      const successDiv = document.getElementById('authSuccess');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      successDiv.style.display = 'none';
+      setTimeout(() => errorDiv.style.display = 'none', 5000);
+    }
+
+    function showAuthSuccess(message) {
+      const errorDiv = document.getElementById('authErrors');
+      const successDiv = document.getElementById('authSuccess');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      errorDiv.style.display = 'none';
+      setTimeout(() => successDiv.style.display = 'none', 5000);
+    }
+
+    // Auth state listener
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('authButton').textContent = 'Esci';
+        document.getElementById('authButton').onclick = () => auth.signOut();
+        
+        // Check admin status
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (userDoc.exists && userDoc.data().role === 'admin') {
+          document.body.classList.add('admin-visible');
+          initializeAdminFeatures();
+        } else {
+          document.body.classList.remove('admin-visible');
+        }
+      } else {
+        currentUser = null;
+        document.getElementById('userEmail').textContent = '';
+        document.getElementById('authButton').textContent = 'Accedi';
+        document.getElementById('authButton').onclick = toggleAuthModal;
+        document.body.classList.remove('admin-visible');
+      }
+    });
+
+    // App initialization
     async function initializeApp() {
+      // Load initial data
       const teamsSnapshot = await db.collection('teams').get();
       teams = teamsSnapshot.docs.map(doc => doc.data());
       
@@ -658,19 +955,14 @@
         disciplines[doc.id] = doc.data();
       });
 
-      if (disciplinesSnapshot.empty) {
-        const defaultDiscipline = { gold: null, silver: null, bronze: null };
-        disciplineList.forEach(async (name) => {
-          await db.collection('disciplines').doc(name).set(defaultDiscipline);
-          disciplines[name] = defaultDiscipline;
-        });
-      }
-
+      // Set up real-time listeners
       db.collection('teams').onSnapshot(snapshot => {
         teams = snapshot.docs.map(doc => doc.data());
         renderDisciplines();
         updateLeaderboard();
-        renderTeamList();
+        if (document.body.classList.contains('admin-visible')) {
+          renderTeamList();
+        }
       });
 
       db.collection('disciplines').onSnapshot(snapshot => {
@@ -681,16 +973,25 @@
         updateLeaderboard();
       });
 
+      // Initial render
       renderDisciplines();
       updateLeaderboard();
     }
 
+    // Admin features
+    function initializeAdminFeatures() {
+      renderTeamList();
+    }
+
     async function addTeam() {
       const teamName = document.getElementById('teamName').value.trim();
-      if (!teamName) return;
+      if (!teamName) {
+        alert('Inserisci un nome per la squadra!');
+        return;
+      }
       
       if (teams.some(t => t.name.toLowerCase() === teamName.toLowerCase())) {
-        alert('Coglione qualcuno ha già messo questo nome!');
+        alert('Esiste già una squadra con questo nome!');
         return;
       }
 
@@ -702,16 +1003,21 @@
         points: 0
       };
 
-
-      
-
-      await db.collection('teams').doc(teamName).set(newTeam);
-      document.getElementById('teamName').value = '';
+      try {
+        await db.collection('teams').doc(teamName).set(newTeam);
+        document.getElementById('teamName').value = '';
+      } catch (error) {
+        console.error("Error adding team: ", error);
+        alert('Errore nell\'aggiungere la squadra!');
+      }
     }
 
     async function updateMedal(discipline, medalType, teamName) {
+      if (!teamName) teamName = null;
+      
       const oldTeamName = disciplines[discipline][medalType];
       
+      // Remove medal from old team if exists
       if (oldTeamName) {
         const oldTeam = teams.find(t => t.name === oldTeamName);
         if (oldTeam) {
@@ -721,6 +1027,7 @@
         }
       }
 
+      // Add medal to new team if selected
       if (teamName) {
         const newTeam = teams.find(t => t.name === teamName);
         newTeam[medalType]++;
@@ -728,8 +1035,9 @@
         await db.collection('teams').doc(teamName).update(newTeam);
       }
 
+      // Update discipline record
       await db.collection('disciplines').doc(discipline).update({
-        [medalType]: teamName || null
+        [medalType]: teamName
       });
     }
 
@@ -745,19 +1053,19 @@
           <div class="grid">
             <div>
               <label>Oro:</label>
-              <select onchange="updateMedal('${discipline}', 'gold', this.value)">
+              <select onchange="updateMedal('${discipline}', 'gold', this.value)" ${document.body.classList.contains('admin-visible') ? '' : 'disabled'}>
                 ${getTeamOptions(disciplines[discipline]?.gold)}
               </select>
             </div>
             <div>
               <label>Argento:</label>
-              <select onchange="updateMedal('${discipline}', 'silver', this.value)">
+              <select onchange="updateMedal('${discipline}', 'silver', this.value)" ${document.body.classList.contains('admin-visible') ? '' : 'disabled'}>
                 ${getTeamOptions(disciplines[discipline]?.silver)}
               </select>
             </div>
             <div>
               <label>Bronzo:</label>
-              <select onchange="updateMedal('${discipline}', 'bronze', this.value)">
+              <select onchange="updateMedal('${discipline}', 'bronze', this.value)" ${document.body.classList.contains('admin-visible') ? '' : 'disabled'}>
                 ${getTeamOptions(disciplines[discipline]?.bronze)}
               </select>
             </div>
@@ -777,27 +1085,24 @@
 
     function updateLeaderboard() {
       const tbody = document.getElementById('leaderboardBody');
-      tbody.innerHTML = teams.sort((a, b) => 
-        b.points - a.points || 
-        b.gold - a.gold || 
-        b.silver - a.silver || 
-        b.bronze - a.bronze
-      ).map(team => `
-        <tr>
-          <td>${team.name}</td>
-          <td>${team.points}</td>
-          <td>${team.gold}</td>
-          <td>${team.silver}</td>
-          <td>${team.bronze}</td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = teams
+        .sort((a, b) => b.points - a.points || b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze)
+        .map((team, index) => `
+          <tr>
+            <td>${team.name}</td>
+            <td>${team.points}</td>
+            <td>${team.gold}</td>
+            <td>${team.silver}</td>
+            <td>${team.bronze}</td>
+          </tr>
+        `).join('');
     }
 
-function showDay(day) {
+    function showDay(day) {
       document.getElementById('day1').style.display = (day === 'day1') ? 'block' : 'none';
       document.getElementById('day2').style.display = (day === 'day2') ? 'block' : 'none';
       
-      // Aggiungi la classe active-tab al bottone cliccato
+      // Update active tab
       document.querySelectorAll('.tabs button').forEach(btn => {
         btn.classList.remove('active-tab');
         if (btn.onclick.toString().includes(day)) {
@@ -806,11 +1111,10 @@ function showDay(day) {
       });
     }
 
-
     function renderTeamList() {
       const container = document.getElementById('teamsContainer');
       container.innerHTML = teams.map(team => `
-        <div class="team-item">
+        <div class="team-item" style="display: flex; justify-content: space-between; align-items: center;">
           <span>${team.name}</span>
           <button class="delete-btn" onclick="deleteTeam('${team.name}')">Elimina</button>
         </div>
@@ -818,29 +1122,35 @@ function showDay(day) {
     }
 
     async function deleteTeam(teamName) {
-      if (!confirm(`Sei sicuro di voler eliminare la squadra ${teamName}? Tutti i loro risultati verranno rimossi!`)) return;
+      if (!confirm(`Sei sicuro di voler eliminare la squadra "${teamName}"? Tutti i loro risultati verranno rimossi!`)) {
+        return;
+      }
       
-      // Remove team from Firestore
-      await db.collection('teams').doc(teamName).delete();
-      
-      // Remove any medals associated with this team
-      const updates = [];
-      Object.keys(disciplines).forEach(discipline => {
-        const disciplineData = disciplines[discipline];
-        Object.keys(disciplineData).forEach(medalType => {
-          if (disciplineData[medalType] === teamName) {
-            updates.push(
-              db.collection('disciplines').doc(discipline).update({
-                [medalType]: null
-              })
-            );
-          }
+      try {
+        // Remove team from Firestore
+        await db.collection('teams').doc(teamName).delete();
+        
+        // Remove any medals associated with this team
+        const updates = [];
+        Object.keys(disciplines).forEach(discipline => {
+          const disciplineData = disciplines[discipline];
+          ['gold', 'silver', 'bronze'].forEach(medalType => {
+            if (disciplineData[medalType] === teamName) {
+              updates.push(
+                db.collection('disciplines').doc(discipline).update({
+                  [medalType]: null
+                })
+              );
+            }
+          });
         });
-      });
-      
-      await Promise.all(updates);
+        
+        await Promise.all(updates);
+      } catch (error) {
+        console.error("Error deleting team: ", error);
+        alert('Errore nell\'eliminare la squadra!');
+      }
     }
-    initializeApp();
   </script>
 </body>
 </html>
