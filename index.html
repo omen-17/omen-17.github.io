@@ -422,6 +422,20 @@ pointer-events: none;
     100% { transform: translate(-50%, -50%) rotate(360deg); }
   }
 
+
+  .discipline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .results-btn {
+    margin-left: 1rem;
+    white-space: nowrap;
+  }
+
+  
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .header h1 {
@@ -541,9 +555,76 @@ pointer-events: none;
       font-size: 16px;
     }
   }
+
+
+  .subtle-btn {
+    background: none !important;
+    border: 2px solid var(--secondary) !important;
+    color: var(--secondary) !important;
+    padding: 0.3rem 0.8rem !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .subtle-btn:hover {
+    background: rgba(0, 157, 220, 0.1) !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .delete-btn.subtle-btn {
+    border-color: var(--error) !important;
+    color: var(--error) !important;
+  }
+
+  /* Results display */
+  .results-display {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+  }
+
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    background: white;
+    border-radius: 8px;
+  }
+
+  .medal-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+  }
+
+  .auth-content#resultsModalContent {
+    max-width: 600px;
+    background: var(--light);
+    border: 2px solid var(--secondary);
+  }
+  
+  .result-input-row {
+    display: grid;
+    grid-template-columns: 1fr 100px;
+    align-items: center;
+    gap: 1rem;
+    margin: 0.5rem 0;
+  }
 </style>
 
-</head>
+
+    <!-- FINE PARTE DI CSS-->
+    <!-- FINE PARTE DI CSS-->
+    <!-- FINE PARTE DI CSS-->
+    <!-- FINE PARTE DI CSS-->
+
+
+
+  </head>
 <body>
   <div id="authModal" class="auth-modal">
     <div class="auth-content">
@@ -798,7 +879,7 @@ pointer-events: none;
   </div>
 
   <script>
-    // Firebase configuration - REPLACE WITH YOUR OWN
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDlPu81AaDsPaXGpOBM2q7AicE9Zb5CULE",
       authDomain: "olimpiadi-bb316.firebaseapp.com",
@@ -820,12 +901,28 @@ pointer-events: none;
     let authProcessing = false;
     let teams = [];
     let disciplines = {};
+    let currentDiscipline = null;
+    let resultsData = [];
     const disciplineList = [
       'STAFFETTA ALCOLICA', 'TIRO AL CANESTRO ALCOLICO', 
       'LA COPPIA CHE SCOPPIA', 'FRECCETTE', 'GARA DI SHOT',
       'TIRO AL BERSAGLIO', 'TIRO ALLA FUNE', 'TIRO CON L\'ARCO',
       'PALLAVOLO', 'CORSA DEI SACCHI', 'CERCA IL TESORO'
     ];
+
+    const disciplineConfig = {
+    'STAFFETTA ALCOLICA': { type: 'time', unit: 'secondi' },
+    'TIRO AL CANESTRO ALCOLICO': { type: 'score', unit: 'canestri' },
+    'LA COPPIA CHE SCOPPIA': { type: 'time', unit: 'secondi' },
+    'FRECCETTE': { type: 'score', unit: 'punti' },
+    'GARA DI SHOT': { type: 'score', unit: 'punti' },
+    'TIRO AL BERSAGLIO': { type: 'score', unit: 'punti' },
+    'TIRO ALLA FUNE': { type: 'position', unit: 'posizione' },
+    'TIRO CON L\'ARCO': { type: 'score', unit: 'punti' },
+    'PALLAVOLO': { type: 'position', unit: 'posizione' },
+    'CORSA DEI SACCHI': { type: 'time', unit: 'secondi' },
+    'CERCA IL TESORO': { type: 'time', unit: 'minuti' }
+  };
 
     // DOM Ready
     document.addEventListener('DOMContentLoaded', () => {
@@ -1075,34 +1172,43 @@ pointer-events: none;
       return (team.gold * 4) + (team.silver * 2) + (team.bronze * 1);
     }
 
-    function renderDisciplines() {
-      const container = document.getElementById('disciplinesContainer');
-      container.innerHTML = disciplineList.map(discipline => `
-        <div class="discipline">
-          <h3>${discipline}</h3>
-          <div class="grid">
-            <div>
-              <label>Oro:</label>
-              <select onchange="updateMedal('${discipline}', 'gold', this.value)" ${document.body.classList.contains('admin-visible') ? '' : 'disabled'}>
-                ${getTeamOptions(disciplines[discipline]?.gold)}
-              </select>
-            </div>
-            <div>
-              <label>Argento:</label>
-              <select onchange="updateMedal('${discipline}', 'silver', this.value)" ${document.body.classList.contains('admin-visible') ? '' : 'disabled'}>
-                ${getTeamOptions(disciplines[discipline]?.silver)}
-              </select>
-            </div>
-            <div>
-              <label>Bronzo:</label>
-              <select onchange="updateMedal('${discipline}', 'bronze', this.value)" ${document.body.classList.contains('admin-visible') ? '' : 'disabled'}>
-                ${getTeamOptions(disciplines[discipline]?.bronze)}
-              </select>
-            </div>
-          </div>
+  
+function renderDisciplines() {
+  const container = document.getElementById('disciplinesContainer');
+  container.innerHTML = disciplineList.map(discipline => `
+    <div class="discipline">
+      <div class="discipline-header">
+        <h3>${discipline}</h3>
+        ${document.body.classList.contains('admin-visible') ? 
+          `<button class="subtle-btn" 
+            onclick="openResultsModal('${discipline}')">
+            📊 Inserisci Risultati
+          </button>` : ''}
+      </div>
+      
+      <!-- Public results display -->
+      ${disciplines[discipline]?.results ? `
+        <div class="results-display">
+          ${disciplines[discipline].results
+            .sort((a, b) => a.rank - b.rank)
+            .map(result => `
+              <div class="result-item">
+                <div>
+                  <span class="medal-icon ${result.rank === 1 ? 'gold' : ''}${result.rank === 2 ? 'silver' : ''}${result.rank === 3 ? 'bronze' : ''}"></span>
+                  ${result.team} - ${result.result}${disciplineConfig[discipline].unit}
+                </div>
+                <span>#${result.rank}</span>
+              </div>
+            `).join('')}
         </div>
-      `).join('');
-    }
+      ` : ''}
+
+      <div class="grid" style="${document.body.classList.contains('admin-visible') ? '' : 'display: none;'}">
+        <!-- Existing medal dropdowns -->
+      </div>
+    </div>
+  `).join('');
+}
 
     function getTeamOptions(selectedTeam) {
       return `<option value="">Scegli squadra</option>
@@ -1141,15 +1247,16 @@ pointer-events: none;
       });
     }
 
-    function renderTeamList() {
-      const container = document.getElementById('teamsContainer');
-      container.innerHTML = teams.map(team => `
-        <div class="team-item" style="display: flex; justify-content: space-between; align-items: center;">
-          <span>${team.name}</span>
-          <button class="delete-btn" onclick="deleteTeam('${team.name}')">Elimina</button>
-        </div>
-      `).join('');
-    }
+ 
+function renderTeamList() {
+  const container = document.getElementById('teamsContainer');
+  container.innerHTML = teams.map(team => `
+    <div class="team-item" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>${team.name}</span>
+      <button class="delete-btn subtle-btn" onclick="deleteTeam('${team.name}')">🗑 Elimina</button>
+    </div>
+  `).join('');
+}
 
     async function deleteTeam(teamName) {
       if (!confirm(`Sei sicuro di voler eliminare la squadra "${teamName}"? Tutti i loro risultati verranno rimossi!`)) {
@@ -1181,6 +1288,115 @@ pointer-events: none;
         alert('Errore nell\'eliminare la squadra!');
       }
     }
+
+
+    function openResultsModal(discipline) {
+    currentDiscipline = discipline;
+    const config = disciplineConfig[discipline];
+    const formHtml = teams.map(team => `
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin: 0.5rem 0;">
+        <span>${team.name}</span>
+        <input type="number" 
+               step="${config.type === 'time' ? 0.01 : 1}"
+               data-team="${team.name}"
+               placeholder="${config.unit}"
+               style="padding: 0.5rem; text-align: right;">
+      </div>
+    `).join('');
+
+    document.getElementById('resultsTitle').textContent = `Risultati ${discipline}`;
+    document.getElementById('resultsFormContainer').innerHTML = `
+      <div style="margin-bottom: 1rem;">
+        <p>Inserisci i risultati in <strong>${config.unit}</strong>:</p>
+        ${formHtml}
+      </div>
+    `;
+    toggleResultsModal();
+  }
+
+  function toggleResultsModal() {
+    const modal = document.getElementById('resultsModal');
+    if (modal.classList.contains('active')) {
+      modal.classList.remove('active');
+      setTimeout(() => modal.style.display = 'none', 300);
+    } else {
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('active'), 10);
+    }
+  }
+
+  async function processResults() {
+    const config = disciplineConfig[currentDiscipline];
+    const inputs = document.querySelectorAll('#resultsFormContainer input');
+    resultsData = [];
+
+    inputs.forEach(input => {
+      if (input.value) {
+        resultsData.push({
+          team: input.dataset.team,
+          result: parseFloat(input.value)
+        });
+      }
+    });
+
+    if (resultsData.length < 1) {
+      showResultsError('Inserire almeno un risultato!');
+      return;
+    }
+
+    // Sort results based on discipline type
+    resultsData.sort((a, b) => {
+      if (config.type === 'time') return a.result - b.result;
+      if (config.type === 'score') return b.result - a.result;
+      return 0;
+    });
+
+    try {
+
+      await db.collection('disciplines').doc(currentDiscipline).update({
+      results: resultsData.map((item, index) => ({
+        team: item.team,
+        result: item.result,
+        rank: index + 1
+      }))
+    });
+
+
+      // Clear previous medals
+      await updateMedal(currentDiscipline, 'gold', null);
+      await updateMedal(currentDiscipline, 'silver', null);
+      await updateMedal(currentDiscipline, 'bronze', null);
+
+      // Assign new medals
+      if (resultsData[0]) await updateMedal(currentDiscipline, 'gold', resultsData[0].team);
+      if (resultsData[1]) await updateMedal(currentDiscipline, 'silver', resultsData[1].team);
+      if (resultsData[2]) await updateMedal(currentDiscipline, 'bronze', resultsData[2].team);
+
+      toggleResultsModal();
+    } catch (error) {
+      showResultsError('Errore nell\'aggiornamento dei risultati!');
+      console.error(error);
+    }
+  }
+
+  function showResultsError(message) {
+    const errorDiv = document.getElementById('resultsErrors');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+    setTimeout(() => errorDiv.style.display = 'none', 5000);
+  }
   </script>
+
+<div id="resultsModal" class="auth-modal">
+  <div class="auth-content" style="max-width: 600px;">
+    <h2 id="resultsTitle"></h2>
+    <div class="auth-errors" id="resultsErrors"></div>
+    <div id="resultsFormContainer"></div>
+    <button onclick="processResults()" style="margin-top: 1rem;">Assegna Medaglie</button>
+    <button onclick="toggleResultsModal()" class="auth-close">Chiudi</button>
+  </div>
+</div>
+
+
 </body>
 </html>
