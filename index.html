@@ -571,19 +571,14 @@ function updateLeaderboard() {
   
   // Make a copy of teams array to sort without modifying the original
   const sortedTeams = [...teams].sort((a, b) => {
-    // Sort by points first
+    // Sort 
     if (b.points !== a.points) return b.points - a.points;
-    // Then by gold medals
     if (b.gold !== a.gold) return b.gold - a.gold;
-    // Then by silver medals
     if (b.silver !== a.silver) return b.silver - a.silver;
-    // Then by bronze medals
     if (b.bronze !== a.bronze) return b.bronze - a.bronze;
-    // If all are equal, sort alphabetically
     return a.name.localeCompare(b.name);
   });
   
-  // Generate rankings with tie handling
   let currentRank = 1;
   let previousTeam = null;
   let skipCount = 0;
@@ -594,18 +589,15 @@ function updateLeaderboard() {
     if (index > 0) {
       const prevTeam = sortedTeams[index - 1];
       
-      // Check if current team is tied with previous team
       const isTied = prevTeam.points === team.points && 
                      prevTeam.gold === team.gold && 
                      prevTeam.silver === team.silver && 
                      prevTeam.bronze === team.bronze;
       
       if (!isTied) {
-        // If not tied, increment rank by 1 + number of skipped positions
         currentRank += skipCount + 1;
         skipCount = 0;
       } else {
-        // If tied, keep the same rank and increment skip count
         skipCount++;
       }
       
@@ -899,7 +891,7 @@ async function updateMedalsForTie(medalType, teamNames, discipline) {
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin: 0.5rem 0;">
       <span>${team.name}</span>
       <input type="number" 
-             step="${config.type === 'time' ? 0.01 : 1}"
+             step="${config.type === 'time' ? 1 : 1}"
              data-team="${team.name}"
              value="${existingResultsMap[team.name] || ''}"
              placeholder="${config.unit}"
