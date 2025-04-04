@@ -918,6 +918,10 @@ async function updateMedalsForTie(medalType, teamNames, discipline) {
       modal.style.display = 'flex';
       setTimeout(() => modal.classList.add('active'), 10);
     }
+    
+    if (window.innerWidth < 768) {
+      document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+    }
   }
 
   async function processResults() {

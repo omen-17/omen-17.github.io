@@ -208,7 +208,7 @@ pointer-events: none;
   }
 
   button:hover::after {
-    left: 100%;
+    left: 90%;
   }
 
   button:hover {
@@ -443,13 +443,24 @@ pointer-events: none;
     #leaderboard td {
       padding: 12px 15px;
     }
+    
   }
-
+  @media screen and (max-width: 768px) {
+    input, select {
+      font-size: 16px !important; /* Force override */
+      min-height: 44px; /* Minimum touch target size */
+    }
+  }
   @media (max-width: 480px) {
     body {
       padding: 10px;
     }
     
+    .result-input-row {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  
     .header {
       padding: 2rem 1rem;
       border-radius: 15px;
@@ -732,3 +743,9 @@ pointer-events: none;
   overflow-y: auto;
   padding-right: 10px;
 }
+
+#resultsModal .auth-content {
+  max-height: 90vh;
+  overflow: auto;
+}
+
