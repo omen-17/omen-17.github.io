@@ -9,620 +9,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="shortcut icon" href="#">
+  <link rel="stylesheet" type="text/css" href="styles.css">
   
-  <style>
-  :root {
-    --primary: #2A2D34;
-    --secondary: #009DDC;
-    --accent: #F26430;
-    --light: #F8F9FA;
-    --dark: #1A1C23;
-    --gradient: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
-    --error: #ff4444;
-    --success: #00C851;
-  }
-  
-  body {
-    font-family: 'Inter', system-ui, sans-serif;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    background: var(--light);
-    line-height: 1.6;
-    color: var(--primary);
-  }
-
-  .header {
-    text-align: center;
-    padding: 1rem 1rem 2rem;
-    background: var(--gradient);
-    color: white;
-    border-radius: 20px;
-    margin-bottom: 2rem;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .header::after {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: linear-gradient(45deg, transparent 0%, rgba(255,255,255,0.1) 100%);
-pointer-events: none;
-}
-
-  .header h1 {
-    font-size: 3rem;
-    margin: 0;
-    letter-spacing: -0.5px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    position: relative;
-    z-index: 1;
-    margin-top: 0.5rem;
-    order: 2;
-  }
-
-  .auth-status {
-    position: static;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    order: -1;
-  }
-
-  .auth-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .auth-modal.active {
-    display: flex;
-    opacity: 1;
-  }
-
-  .auth-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 400px;
-    position: relative;
-    transform: translateY(-20px);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }
-
-  .auth-modal.active .auth-content {
-    transform: translateY(0);
-  }
-
-  .auth-errors {
-    color: var(--error);
-    margin-bottom: 1rem;
-    min-height: 20px;
-    text-align: center;
-    padding: 0.5rem;
-    border-radius: 8px;
-    background-color: rgba(255, 68, 68, 0.1);
-  }
-
-  .auth-success {
-    color: var(--success);
-    margin-bottom: 1rem;
-    min-height: 20px;
-    text-align: center;
-    padding: 0.5rem;
-    border-radius: 8px;
-    background-color: rgba(0, 200, 81, 0.1);
-  }
-
-  .admin-only {
-    display: none;
-  }
-
-  .admin-visible .admin-only {
-    display: block;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .card {
-    background: white;
-    padding: 2rem;
-    border-radius: 20px;
-    box-shadow: 0 5px 25px -5px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-    border-left: 6px solid var(--secondary);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 40px -10px rgba(0,0,0,0.15);
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: var(--gradient);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .card:hover::before {
-    opacity: 1;
-  }
-
-  input, select, button {
-    padding: 1rem;
-    margin: 0.5rem 0;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    width: 100%;
-    font-size: 1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: white;
-  }
-
-  input:focus, select:focus {
-    border-color: var(--secondary);
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(0,157,220,0.1);
-    background: #f8fcff;
-  }
-
-  button {
-    background: var(--secondary);
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    position: relative;
-    overflow: hidden;
-    background-image: linear-gradient(to right, var(--secondary) 0%, #0077b6 100%);
-  }
-
-  button::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.6s;
-  }
-
-  button:hover::after {
-    left: 100%;
-  }
-
-  button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,157,220,0.3);
-  }
-
-  .medal {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    font-size: 1rem;
-    margin: 0 5px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-    position: relative;
-  }
-
-  .gold { 
-    background: linear-gradient(145deg, #FFD700 0%, #FFC000 100%);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  }
-
-  .silver { 
-    background: linear-gradient(145deg, #e5e5e5 0%, #bdbdbd 100%);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  }
-
-  .bronze { 
-    background: linear-gradient(145deg, #cd7f32 0%, #b56c24 100%);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  }
-
-  .game {
-    margin-bottom: 2rem;
-    padding: 2rem;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 5px 20px -5px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-    border-left: 4px solid var(--accent);
-  }
-
-  .game:hover {
-    transform: translateX(5px);
-  }
-
-  .game h3 {
-    color: var(--primary);
-    margin-top: 0;
-    font-size: 1.4rem;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .game h3::before {
-    content: '🏆';
-    font-size: 1.2em;
-  }
-
-  #leaderboard {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 5px 20px -5px rgba(0,0,0,0.05);
-  }
-
-  #leaderboard th,
-  #leaderboard td {
-    padding: 16px 20px;
-    text-align: center;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  #leaderboard th {
-    background: var(--primary);
-    color: white;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  #leaderboard tr:nth-child(even) {
-    background-color: #f8fafc;
-  }
-
-  #leaderboard tr:hover {
-    background-color: #f1f5f9;
-  }
-
-  .tabs {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    background: #f8fafc;
-    padding: 8px;
-    border-radius: 12px;
-  }
-
-  .tabs button {
-    flex: 1;
-    padding: 1rem;
-    background: transparent;
-    color: var(--dark);
-    border: none;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    position: relative;
-  }
-
-  .tabs button:hover {
-    background: rgba(0,157,220,0.1);
-  }
-
-  .tabs button.active-tab {
-    background: var(--secondary);
-    color: white;
-    box-shadow: 0 4px 6px rgba(0,157,220,0.1);
-  }
-
-  .delete-btn {
-    background: #ff4444;
-    background-image: linear-gradient(to right, #ff4444 0%, #cc0000 100%);
-    color: white;
-    padding: 0.4rem 1.2rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-  }
-
-  .delete-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 3px 10px rgba(255,68,68,0.2);
-  }
-
-  /* Auth mode toggle */
-  .auth-mode-toggle {
-    text-align: center;
-    margin: 1rem 0;
-  }
-  
-  .auth-mode-toggle button {
-    background: none;
-    border: none;
-    color: var(--secondary);
-    text-decoration: underline;
-    cursor: pointer;
-    padding: 0.5rem;
-    text-transform: none;
-    letter-spacing: normal;
-    font-weight: normal;
-    width: auto;
-  }
-
-  .password-container {
-    position: relative;
-  }
-
-  .toggle-password {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: var(--primary);
-    padding: 0.5rem;
-  }
-
-  .loading {
-    position: relative;
-    pointer-events: none;
-    opacity: 0.7;
-  }
-
-  .loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255,255,255,0.3);
-    border-radius: 50%;
-    border-top-color: white;
-    animation: spin 1s linear infinite;
-    transform: translate(-50%, -50%);
-  }
-
-  @keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-  }
-
-
-  .discipline-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .results-btn {
-    margin-left: 1rem;
-    white-space: nowrap;
-  }
-
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .header h1 {
-      font-size: 2.2rem;
-    }
-    
-    .card {
-      padding: 1.5rem;
-      border-radius: 16px;
-    }
-    
-    .table-container {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    #leaderboard th,
-    #leaderboard td {
-      padding: 12px 15px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    body {
-      padding: 10px;
-    }
-    
-    .header {
-      padding: 2rem 1rem;
-      border-radius: 15px;
-    }
-    
-    .header h1 {
-      font-size: 1.8rem;
-      line-height: 1.2;
-    }
-    
-    .grid {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-    
-    .card {
-      padding: 1.2rem;
-      border-radius: 15px;
-    }
-    
-    .tabs {
-      flex-direction: column;
-    }
-    
-    .tabs button {
-      width: 100%;
-      padding: 0.8rem;
-      font-size: 0.9rem;
-    }
-    
-    .game {
-      padding: 1.2rem;
-    }
-    
-    .game h3 {
-      font-size: 1.2rem;
-      flex-wrap: wrap;
-    }
-    
-    #leaderboard th,
-    #leaderboard td {
-      padding: 10px 12px;
-      font-size: 0.9rem;
-    }
-    
-    .medal {
-      width: 28px;
-      height: 28px;
-      font-size: 0.9rem;
-    }
-    
-    .team-management input,
-    .team-management button {
-      padding: 0.8rem;
-      font-size: 0.9rem;
-    }
-    
-    .delete-btn {
-      padding: 0.4rem 0.8rem;
-      font-size: 0.8rem;
-    }
-  }
-
-  .scaled-logo{
-    width: 100%;
-    height: auto;
-  }
-  @media (max-width: 480px) {
-  .auth-status {
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 0.5rem;
-  }
-  
-  .header h1 {
-    font-size: 1.4rem;
-    padding: 0;
-    line-height: 1.3;
-  }
-  
-  #authButton {
-    padding: 8px 16px;
-    font-size: 14px;
-  }
-}
-
-  /* Prevent zoom on input focus */
-  @media screen and (max-width: 768px) {
-    input, select {
-      font-size: 16px;
-    }
-  }
-
-
-  .subtle-btn {
-    background: none !important;
-    border: 2px solid var(--secondary) !important;
-    color: var(--secondary) !important;
-    padding: 0.3rem 0.8rem !important;
-    font-size: 0.9rem !important;
-    transition: all 0.2s ease !important;
-  }
-
-  .subtle-btn:hover {
-    background: rgba(0, 157, 220, 0.1) !important;
-    transform: none !important;
-    box-shadow: none !important;
-  }
-
-  .delete-btn.subtle-btn {
-    border-color: var(--error) !important;
-    color: var(--error) !important;
-  }
-
-  /* Results display */
-  .results-display {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: #f8fafc;
-    border-radius: 12px;
-  }
-
-  .result-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem;
-    margin: 0.25rem 0;
-    background: white;
-    border-radius: 8px;
-  }
-
-  .medal-icon {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    margin-right: 0.5rem;
-  }
-
-  .auth-content#resultsModalContent {
-    max-width: 600px;
-    background: var(--light);
-    border: 2px solid var(--secondary);
-  }
-  
-  .result-input-row {
-    display: grid;
-    grid-template-columns: 1fr 100px;
-    align-items: center;
-    gap: 1rem;
-    margin: 0.5rem 0;
-  }
-</style>
-
-
-    <!-- FINE PARTE DI CSS-->
-    <!-- FINE PARTE DI CSS-->
-    <!-- FINE PARTE DI CSS-->
-    <!-- FINE PARTE DI CSS-->
-
-
 
   </head>
 <body>
@@ -679,27 +67,57 @@ pointer-events: none;
     <div id="generalRule" class="rules-section active-rule">
       <h3>Regole generali</h3>
       <ul>
-        <li>4 partecipanti per squadra</li>
-        <li>9 discipline</li>
-        <li>Infinito divertimento</li>
-      </ul>
+        <li><strong>DIVERTITEVI AL MASSIMO E SORRIDETE SEMPRE!</strong></li>
+        <li><strong>Discipline:</strong> verranno scelte almeno 9 delle 11 discipline scritte sopra, in base alle
+          tempistiche.</li>
+        <li><strong>Squadre:</strong> le squadre saranno fatte ad estrazione e ad ognuna verrà assegnato un
+          colore con cui dovrà disegnare qualcosa sulla maglietta (scelta libera)</li>
+
+        <li><strong>Partecipanti:</strong> le squadre saranno composte da 4 membri, e ad ogni disciplina
+          potranno partecipare 3 persone (tranne nelle discipline in cui è indicato
+          diversamente: vedi la coppia che scoppia, freccette e tiro al bersaglio)</li>
+
+        <li><strong>Assenze:</strong> in caso una squadra non abbia il numero di partecipanti minimi per
+          imprevisti o motivi vari, potrà chiedere un prestito ad un’altra squadra. In caso
+          contrario verrà squalificata dalla competizione per quella determinata disciplina.</li>
+          <li><strong>Ordine di gara nelle discipline individuali:</strong> l’ordine di partecipazione delle squadre
+            verrà stabilito tramite sorteggio prima dell’inizio della competizione.</li>
+
+          <li><strong>Bevuta:</strong> ogni bevuta è valida solo se il bicchiere è completamente finito.</li>
+          
+        <li><strong>Alcool:</strong> nelle competizioni alcoliche, ogni partecipante potrà scegliere se bere:</li>
+        <ul>
+              <ul style="list-style-type: style type none;"></ul>    
+                <li>uno shottino di super 🥃</li>
+                <li>mezzo bicchiere di vino 🍷</li>
+                <li>un bicchiere di birra 🍺</li>
+                <ul>
+
+
     </div>
-    <div id="alcoholRule" class="rules-section">
-      <h3>Regole alcoliche</h3>
-      <ul>
-        <li>1 shot = ½ bicchiere di vino = 1 birra</li>
-        <li>Va finito completamente</li>
-        <li>Il valore degli shot dipende dalla gara</li>
-      </ul>
-    </div>
+
     <div id="scoringRule" class="rules-section">
       <h3>Punteggi</h3>
       <ul>
+        <li>Per ogni disciplina, verranno assegnate medaglie oro, argento
+          e bronzo che avranno il seguente punteggio:</li>
+          <ul>
+
+            <ul style="list-style-type: style type none;"></ul>    
+
         <li>Oro 🥇: 4 punti</li>
         <li>Argento 🥈: 2 punti</li>
         <li>Bronzo 🥉: 1 punto</li>
       </ul>
+      <ul>
     </div>
+    <li><strong>Coppa olimpica:</strong> chi ottiene più punti vince la coppa olimpica e il rispettivo premio.
+      In caso di pareggio, vince la squadra con più ori. 🏆</li>
+  </ul>
+
+  <div>
+    
+    <strong>In caso di vuoto legislativo la scelta sarà a discrezione dei giudici. </strong></div>
   </div>
 
   <div class="card">
@@ -715,7 +133,7 @@ pointer-events: none;
         <div class="game-rules">
           <ul>
             <li>Ogni concorrente, prima di partire, deve bere e correre alla postazione successiva per passare il testimone.</li>
-            <li>Il tempo parte quando il primo inizia a bere e si stoppa quando l'ultimo posa il testimone.</li>
+            <li>Il tempo parte quando il primo inizia a bere e si ferma quando l'ultimo posa il testimone.</li>
             <li>Le squadre parteciperanno una alla volta.</li>
           </ul>
           <p><strong>Vince</strong> la squadra che ci impiega meno tempo.</p>
@@ -727,7 +145,7 @@ pointer-events: none;
           <ul>
             <li>Gioca un concorrente alla volta, che deve bere prima di tirare.</li>
             <li>Ogni bevuta vale 30 secondi per tentare di fare il maggior numero di canestri.</li>
-            <li>Il tiro avviene da dietro una linea.</li>
+            <li>Ogni concorrente tira da dietro una linea fissa.</li>
             <li>I compagni possono aiutare a recuperare il pallone.</li>
           </ul>
           <p><strong>Vince</strong> la squadra che fa più canestri.</p>
@@ -738,10 +156,16 @@ pointer-events: none;
         <div class="game-rules">
           <ul>
             <li>Partecipano tutti i membri divisi in coppie.</li>
-            <li>Una coppia alla volta: un membro bendato, l'altro che guida senza toccarlo lungo il percorso ad ostacoli.</li>
-            <li>Il membro che guida deve bere prima di iniziare (il bendato no).</li>
-            <li>Le indicazioni possono essere date anche da altri compagni in attesa.</li>
-            <li>Quando la prima coppia arriva alla fine, torna indietro e poi parte la successiva.</li>
+            <li>Partecipa una coppia alla volta: un membro sarà bendato, l’altro dovrà dare
+              indicazioni al compagno, senza toccarlo e seguendolo, per fare il percorso ad
+              ostacoli.</li>
+            <li>Il membro della squadra che dà indicazioni dovrà bere prima di iniziare (chi è
+              bendato no).</li>
+            <li>L’altra coppia, che aspetta al punto di inizio, può dare indicazioni.</li>
+            <li>Quando la prima squadra arriva alla fine deve tornare indietro ma senza
+              ripetere il percorso (uno è sempre bendato e l’altro continua a dare
+              indicazioni); quando torna al punto di partenza può partire la seconda coppia
+              che dovrà gareggiare nella stessa modalità</li>
           </ul>
           <p><strong>Vince</strong> la squadra che completa il percorso in meno tempo.</p>
         </div>
@@ -750,10 +174,13 @@ pointer-events: none;
         <h3>FRECCETTE</h3>
         <div class="game-rules">
           <ul>
-            <li>Tutti i componenti della squadra partecipano.</li>
+            <li>Giocano tutti i componenti della squadra.</li>
             <li>Ogni concorrente ha 5 freccette per ottenere il punteggio più alto possibile.</li>
-            <li>Se la freccetta cade, si ha un solo tentativo extra.</li>
-            <li>In caso di pareggio, si effettua uno spareggio fino a determinare il vincitore.</li>
+            <li>In caso il concorrente colpisse il tabellone con la freccetta e questa cadesse,
+              ha una possibilità per ritirarla (in caso capitasse più volte, avrà comunque
+              solo un tentativo extra totale).</li>
+            <li>In caso di pareggio, si farà uno spareggio finché verrà determinata la squadra
+              che ha fatto più punti.</li>
           </ul>
           <p><strong>Vince</strong> la squadra che segna più punti.</p>
         </div>
@@ -765,12 +192,13 @@ pointer-events: none;
             <li>Ogni concorrente ha 1 minuto per bere il maggior numero di shot possibili.</li>
             <li>Tipologie di shot con punteggi diversi:
               <ul>
-                <li>rum al miele = 1 punto</li>
-                <li>jager = 2 punti</li>
-                <li>assenzio = 4 punti</li>
+                <li><strong>rum al miele</strong> = 1 punto</li>
+                <li><strong>jager</strong>= 2 punti</li>
+                <li><strong>assenzio</strong> = 4 punti</li>
               </ul>
             </li>
-            <li>In caso di pareggio per i primi 3 posti, un partecipante di ogni squadra si sfiderà (anche chi non ha partecipato).</li>
+            <li>In caso di pareggio per i primi 3 posti, un partecipante di ogni squadra si
+              sfideranno a vicenda (che può essere anche quello che non ha partecipato).</li>
           </ul>
           <p><strong>Vince</strong> la squadra che totalizza più punti.</p>
         </div>
@@ -782,11 +210,14 @@ pointer-events: none;
         <h3>TIRO AL BERSAGLIO</h3>
         <div class="game-rules">
           <ul>
-            <li>Tutti i membri partecipano.</li>
-            <li>Ogni componente ha 45 secondi per abbattere il maggior numero di bersagli con un fucile a pallini.</li>
-            <li>I bersagli valgono da 1 a 3 in base alla difficoltà.</li>
-            <li>Il tiro avviene da dietro una linea fissa.</li>
-            <li>In caso di pareggio, si procede con uno spareggio.</li>
+            <li>Partecipano tutti i membri della squadra.</li>
+            <li>Ogni componente della squadra ha 45 secondi per buttare giù più bersagli
+              possibile con un fucile a pallini.</li>
+            <li>I bersagli hanno valore diverso in base alla difficoltà (da 1 per il più facile fino
+              a 3 per il più difficile)</li>
+            <li>Si deve sparare da dietro una linea fissa.</li>
+            <li>In caso di pareggio, si farà uno spareggio finché verrà determinata la squadra
+              che ha fatto più punti.</li>
           </ul>
           <p><strong>Vince</strong> la squadra che segna più punti.</p>
         </div>
@@ -796,20 +227,22 @@ pointer-events: none;
         <div class="game-rules">
           <ul>
             <li>Si sfidano 2 squadre alla volta.</li>
-            <li>I primi giocatori si posizionano equidistanti da una linea, con i compagni dietro di loro.</li>
-            <li>La competizione si svolge in eliminazione diretta.</li>
+            <li>I primi giocatori si posizionano equidistanti da una linea, i compagni si mettono dietro di loro disposti a proprio piacimento.</li>
+            <li>Questa disciplina viene disputata come un torneo quindi le vincitrici si
+              sfideranno fra loro con gare ad eliminazione diretta per determinare la
+              squadra vincitrice.</li>
           </ul>
-          <p><strong>Vince</strong> la squadra che fa calpestare per prima la linea al concorrente avversario.</p>
+          <p><strong>Vince</strong> la squadra che fa calpestare per prima la linea al concorrente avversario (e vince la finale).</p>
         </div>
       </div>
       <div class="game">
         <h3>TIRO CON L'ARCO</h3>
         <div class="game-rules">
           <ul>
-            <li>Tutti i componenti partecipano.</li>
+            <li>Partecipano tutti i componenti della squadra.</li>
             <li>Ogni concorrente tira 3 frecce da dietro una linea.</li>
-            <li>Si possono effettuare 2 tiri di prova prima dell'inizio.</li>
-            <li>In caso di pareggio, si effettua uno spareggio.</li>
+            <li>Ogni concorrente ha la possibilità <strong>(non l'obbligo)</strong> di fare 2 tiri di prova prima dell'inizio della sfida</li>
+            <li>In caso di pareggio, si effettuerà uno spareggio finché non verrà determinata la squadra che ha fatto più punti.</li>
           </ul>
           <p><strong>Vince</strong> la squadra con il punteggio più alto.</p>
         </div>
@@ -818,10 +251,13 @@ pointer-events: none;
         <h3>PALLAVOLO</h3>
         <div class="game-rules">
           <ul>
-            <li>Partite di 5 minuti; in caso di pareggio, 2 minuti extra.</li>
-            <li>Il punto continua fino a quando la palla cade.</li>
-            <li>Si disputa un torneo a eliminazione diretta.</li>
-            <li>Le finali (primo, secondo, terzo, quarto posto) durano 7 minuti.</li>
+            <li>Partite secche da 5 minuti, in caso di pareggio si giocheranno 2 minuti extra.</li>
+            <li>Quando il tempo finisce, si continua a giocare quel punto finché la palla non
+              cade (se la palla è stata messa in gioco prima che il tempo finisse allora si
+              continua a giocare quel punto, non appena il punto è finito finisce anche la
+              partita)</li>
+            <li>Le squadre si sfidano in un normale torneo a scontro diretto.</li>
+            <li>Le finali per il primo, secondo, terzo e quarto posto durano 7 minuti.</li>
           </ul>
           <p><strong>Vince</strong> la squadra che vince la finale.</p>
         </div>
@@ -830,10 +266,13 @@ pointer-events: none;
         <h3>CORSA DEI SACCHI</h3>
         <div class="game-rules">
           <ul>
-            <li>Ogni squadra decide l'ordine di partenza.</li>
-            <li>Il primo concorrente salta nel sacco da una linea fino alla seconda linea e ritorna.</li>
-            <li>Il successivo parte solo dopo il completamento del precedente.</li>
-            <li>Il tempo si ferma al termine della corsa.</li>
+            <li>Ogni squadra decide l'ordine di partenza dei propri membri.</li>
+            <li>Al via, il primo concorrente parte da dietro una linea e salta, dentro al sacco,
+              fino alla seconda linea e poi torna indietro.</li>
+            <li>Solo quando il concorrente precedente ha superato la linea d’arrivo può
+              partire il secondo.</li>
+            <li>Quando tutti i membri della squadra avranno finito la corsa si fermerà il
+              tempo.</li>
           </ul>
           <p><strong>Vince</strong> la squadra che impiega meno tempo.</p>
         </div>
@@ -843,11 +282,15 @@ pointer-events: none;
         <div class="game-rules">
           <ul>
             <li>Gioca una squadra alla volta.</li>
-            <li>Prima dell'inizio, ogni componente estrae un oggetto da trovare.</li>
-            <li>A turno, ciascun componente si tuffa in piscina con gli occhi bendati per cercare il proprio oggetto.</li>
-            <li>Quando un concorrente esce dalla piscina, il successivo può tuffarsi.</li>
-            <li>Se si afferra l'oggetto sbagliato, lo si lascia e si continua a cercare.</li>
-            <li>In totale, ci sono 10 oggetti da trovare.</li>
+            <li>Prima dell’inizio della competizione, ogni componente della squadra estrae un
+              oggetto da trovare.</li>
+            <li>A turno, ogni componente si deve tuffare in piscina con gli occhi bendati e
+              trovare l’oggetto a loro assegnato.</li>
+            <li>Appena il concorrente sarà uscito dalla piscina il successivo potrà tuffarsi per
+              trovare l’oggetto a lui assegnato.</li>
+            <li>In caso un concorrente afferrasse l’oggetto sbagliato, dovrà lasciarlo fuori
+              dalla piscina e continuare a cercare il suo.</li>
+            <li>Ci saranno un totale di 10 oggetti in piscina.</li>
           </ul>
           <p><strong>Vince</strong> la squadra che impiega meno tempo a trovare tutti gli oggetti.</p>
         </div>
@@ -1028,6 +471,20 @@ pointer-events: none;
       showAuthError(messages[error.code] || error.message);
     }
 
+
+function generateMatches(teams, maxTeams) {
+  const matches = [];
+  for (let i = 0; i < maxTeams; i += 2) {
+    matches.push({
+      team1: teams[i]?.name || null,
+      team2: teams[i+1]?.name || null,
+      winner: null
+    });
+  }
+  return matches;
+}
+
+
     function showAuthError(message) {
       const errorDiv = document.getElementById('authErrors');
       const successDiv = document.getElementById('authSuccess');
@@ -1073,38 +530,101 @@ pointer-events: none;
 
     // App initialization
     async function initializeApp() {
-      // Load initial data
-      const teamsSnapshot = await db.collection('teams').get();
-      teams = teamsSnapshot.docs.map(doc => doc.data());
-      
-      const disciplinesSnapshot = await db.collection('disciplines').get();
-      disciplinesSnapshot.forEach(doc => {
-        disciplines[doc.id] = doc.data();
-      });
+  // Load initial data
+  const teamsSnapshot = await db.collection('teams').get();
+  teams = teamsSnapshot.docs.map(doc => doc.data());
+  
+  // Initialize disciplines if needed
+  await initializeDisciplines();
+  
+  const disciplinesSnapshot = await db.collection('disciplines').get();
+  disciplinesSnapshot.forEach(doc => {
+    disciplines[doc.id] = doc.data();
+  });
 
-      // Set up real-time listeners
-      db.collection('teams').onSnapshot(snapshot => {
-        teams = snapshot.docs.map(doc => doc.data());
-        renderDisciplines();
-        updateLeaderboard();
-        if (document.body.classList.contains('admin-visible')) {
-          renderTeamList();
-        }
-      });
-
-      db.collection('disciplines').onSnapshot(snapshot => {
-        snapshot.forEach(doc => {
-          disciplines[doc.id] = doc.data();
-        });
-        renderDisciplines();
-        updateLeaderboard();
-      });
-
-      // Initial render
-      renderDisciplines();
-      updateLeaderboard();
+  // Set up real-time listeners
+  db.collection('teams').onSnapshot(snapshot => {
+    teams = snapshot.docs.map(doc => doc.data());
+    renderDisciplines();
+    updateLeaderboard();
+    if (document.body.classList.contains('admin-visible')) {
+      renderTeamList();
     }
+  });
 
+  db.collection('disciplines').onSnapshot(snapshot => {
+    snapshot.forEach(doc => {
+      disciplines[doc.id] = doc.data();
+    });
+    renderDisciplines();
+    updateLeaderboard();
+  });
+
+  // Initial render
+  renderDisciplines();
+  updateLeaderboard();
+}
+
+// Update the leaderboard to correctly handle tied positions
+function updateLeaderboard() {
+  const tbody = document.getElementById('leaderboardBody');
+  
+  // Make a copy of teams array to sort without modifying the original
+  const sortedTeams = [...teams].sort((a, b) => {
+    // Sort by points first
+    if (b.points !== a.points) return b.points - a.points;
+    // Then by gold medals
+    if (b.gold !== a.gold) return b.gold - a.gold;
+    // Then by silver medals
+    if (b.silver !== a.silver) return b.silver - a.silver;
+    // Then by bronze medals
+    if (b.bronze !== a.bronze) return b.bronze - a.bronze;
+    // If all are equal, sort alphabetically
+    return a.name.localeCompare(b.name);
+  });
+  
+  // Generate rankings with tie handling
+  let currentRank = 1;
+  let previousTeam = null;
+  let skipCount = 0;
+  
+  const rankedTeams = sortedTeams.map((team, index) => {
+    let rank = currentRank;
+    
+    if (index > 0) {
+      const prevTeam = sortedTeams[index - 1];
+      
+      // Check if current team is tied with previous team
+      const isTied = prevTeam.points === team.points && 
+                     prevTeam.gold === team.gold && 
+                     prevTeam.silver === team.silver && 
+                     prevTeam.bronze === team.bronze;
+      
+      if (!isTied) {
+        // If not tied, increment rank by 1 + number of skipped positions
+        currentRank += skipCount + 1;
+        skipCount = 0;
+      } else {
+        // If tied, keep the same rank and increment skip count
+        skipCount++;
+      }
+      
+      rank = currentRank;
+    }
+    
+    return { ...team, rank };
+  });
+  
+  tbody.innerHTML = rankedTeams.map(team => `
+    <tr>
+      <td>#${team.rank} ${team.name}</td>
+      <td>${team.points}</td>
+      <td>${team.gold}</td>
+      <td>${team.silver}</td>
+      <td>${team.bronze}</td>
+    </tr>
+  `).join('');
+}
     // Admin features
     function initializeAdminFeatures() {
       renderTeamList();
@@ -1140,40 +660,44 @@ pointer-events: none;
     }
 
     async function updateMedal(discipline, medalType, teamName) {
-      if (!teamName) teamName = null;
-      
-      const oldTeamName = disciplines[discipline][medalType];
-      
-      // Remove medal from old team if exists
-      if (oldTeamName) {
-        const oldTeam = teams.find(t => t.name === oldTeamName);
-        if (oldTeam) {
-          oldTeam[medalType]--;
-          oldTeam.points = calculatePoints(oldTeam);
-          await db.collection('teams').doc(oldTeamName).update(oldTeam);
-        }
-      }
-
-      // Add medal to new team if selected
-      if (teamName) {
-        const newTeam = teams.find(t => t.name === teamName);
-        newTeam[medalType]++;
-        newTeam.points = calculatePoints(newTeam);
-        await db.collection('teams').doc(teamName).update(newTeam);
-      }
-
-      // Update discipline record
-      await db.collection('disciplines').doc(discipline).update({
-        [medalType]: teamName
-      });
-    }
-
-    function calculatePoints(team) {
-      return (team.gold * 4) + (team.silver * 2) + (team.bronze * 1);
-    }
-
+  const disciplineData = disciplines[discipline] || {};
+  const oldTeamValue = disciplineData[medalType];
   
-function renderDisciplines() {
+  // Handle both single team and arrays of teams
+  const oldTeams = Array.isArray(oldTeamValue) ? oldTeamValue : [oldTeamValue].filter(Boolean);
+  
+  // Remove medal from old teams if they exist
+  for (const oldTeamName of oldTeams) {
+    const oldTeam = teams.find(t => t.name === oldTeamName);
+    if (oldTeam) {
+      oldTeam[medalType]--;
+      oldTeam.points = calculatePoints(oldTeam);
+      await db.collection('teams').doc(oldTeamName).update(oldTeam);
+    }
+  }
+
+  // If no new team, just clear the medal
+  if (!teamName) {
+    await db.collection('disciplines').doc(discipline).update({
+      [medalType]: null
+    });
+    return;
+  }
+  
+  // Handle single team assignment (tied positions are handled by updateMedalsForTie)
+  const newTeam = teams.find(t => t.name === teamName);
+  if (newTeam) {
+    newTeam[medalType]++;
+    newTeam.points = calculatePoints(newTeam);
+    await db.collection('teams').doc(teamName).update(newTeam);
+  }
+
+  // Update discipline record
+  await db.collection('disciplines').doc(discipline).update({
+    [medalType]: teamName
+  });
+}
+    function renderDisciplines() {
   const container = document.getElementById('disciplinesContainer');
   container.innerHTML = disciplineList.map(discipline => `
     <div class="discipline">
@@ -1190,7 +714,6 @@ function renderDisciplines() {
       ${disciplines[discipline]?.results ? `
         <div class="results-display">
           ${disciplines[discipline].results
-            .sort((a, b) => a.rank - b.rank)
             .map(result => `
               <div class="result-item">
                 <div>
@@ -1202,10 +725,6 @@ function renderDisciplines() {
             `).join('')}
         </div>
       ` : ''}
-
-      <div class="grid" style="${document.body.classList.contains('admin-visible') ? '' : 'display: none;'}">
-        <!-- Existing medal dropdowns -->
-      </div>
     </div>
   `).join('');
 }
@@ -1258,61 +777,111 @@ function renderTeamList() {
   `).join('');
 }
 
-    async function deleteTeam(teamName) {
-      if (!confirm(`Sei sicuro di voler eliminare la squadra "${teamName}"? Tutti i loro risultati verranno rimossi!`)) {
-        return;
-      }
+async function deleteTeam(teamName) {
+  if (!confirm(`Sei sicuro di voler eliminare la squadra "${teamName}"? Tutti i loro risultati verranno rimossi!`)) {
+    return;
+  }
+  
+  try {
+    // Remove team from Firestore
+    await db.collection('teams').doc(teamName).delete();
+    
+    // Remove any medals and results associated with this team
+    const updates = [];
+    
+    // Process all disciplines
+    for (const discipline of Object.keys(disciplines)) {
+      const disciplineData = disciplines[discipline];
       
-      try {
-        // Remove team from Firestore
-        await db.collection('teams').doc(teamName).delete();
+      // 1. Remove medals
+      ['gold', 'silver', 'bronze'].forEach(medalType => {
+        if (disciplineData[medalType] === teamName) {
+          updates.push(
+            db.collection('disciplines').doc(discipline).update({
+              [medalType]: null
+            })
+          );
+        }
+      });
+      
+      // 2. Remove from results array
+      if (disciplineData.results) {
+        const filteredResults = disciplineData.results.filter(
+          result => result.team !== teamName
+        );
         
-        // Remove any medals associated with this team
-        const updates = [];
-        Object.keys(disciplines).forEach(discipline => {
-          const disciplineData = disciplines[discipline];
-          ['gold', 'silver', 'bronze'].forEach(medalType => {
-            if (disciplineData[medalType] === teamName) {
-              updates.push(
-                db.collection('disciplines').doc(discipline).update({
-                  [medalType]: null
-                })
-              );
-            }
-          });
-        });
-        
-        await Promise.all(updates);
-      } catch (error) {
-        console.error("Error deleting team: ", error);
-        alert('Errore nell\'eliminare la squadra!');
+        if (filteredResults.length !== disciplineData.results.length) {
+          updates.push(
+            db.collection('disciplines').doc(discipline).update({
+              results: filteredResults
+            })
+          );
+        }
       }
     }
+    
+    await Promise.all(updates);
+  } catch (error) {
+    console.error("Error deleting team: ", error);
+    alert('Errore nell\'eliminare la squadra!');
+  }
+}
+    async function updateMedalsForTie(medalType, teamNames, discipline) {
+  if (teamNames.length === 1) {
+    // Simple case: only one team gets this medal
+    await updateMedal(discipline, medalType, teamNames[0]);
+  } else {
+    // Tie case: multiple teams share the medal
+    // Store the list of teams in the discipline document
+    await db.collection('disciplines').doc(discipline).update({
+      [medalType]: teamNames
+    });
+    
+    // Update each team's medal count
+    for (const teamName of teamNames) {
+      const team = teams.find(t => t.name === teamName);
+      if (team) {
+        team[medalType]++;
+        team.points = calculatePoints(team);
+        await db.collection('teams').doc(teamName).update(team);
+      }
+    }
+  }
+}
 
 
     function openResultsModal(discipline) {
-    currentDiscipline = discipline;
-    const config = disciplineConfig[discipline];
-    const formHtml = teams.map(team => `
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin: 0.5rem 0;">
-        <span>${team.name}</span>
-        <input type="number" 
-               step="${config.type === 'time' ? 0.01 : 1}"
-               data-team="${team.name}"
-               placeholder="${config.unit}"
-               style="padding: 0.5rem; text-align: right;">
-      </div>
-    `).join('');
+  currentDiscipline = discipline;
+  const config = disciplineConfig[discipline];
+  
+  // Get existing results to pre-fill the form
+  const existingResults = disciplines[discipline]?.results || [];
+  const existingResultsMap = {};
+  existingResults.forEach(result => {
+    existingResultsMap[result.team] = result.result;
+  });
+  
+  const formHtml = teams.map(team => `
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin: 0.5rem 0;">
+      <span>${team.name}</span>
+      <input type="number" 
+             step="${config.type === 'time' ? 0.01 : 1}"
+             data-team="${team.name}"
+             value="${existingResultsMap[team.name] || ''}"
+             placeholder="${config.unit}"
+             style="padding: 0.5rem; text-align: right;">
+    </div>
+  `).join('');
 
-    document.getElementById('resultsTitle').textContent = `Risultati ${discipline}`;
-    document.getElementById('resultsFormContainer').innerHTML = `
-      <div style="margin-bottom: 1rem;">
-        <p>Inserisci i risultati in <strong>${config.unit}</strong>:</p>
-        ${formHtml}
-      </div>
-    `;
-    toggleResultsModal();
-  }
+  document.getElementById('resultsTitle').textContent = `Risultati ${discipline}`;
+  document.getElementById('resultsFormContainer').innerHTML = `
+    <div style="margin-bottom: 1rem;">
+      <p>Inserisci i risultati in <strong>${config.unit}</strong>:</p>
+      ${formHtml}
+    </div>
+  `;
+  toggleResultsModal();
+}
 
   function toggleResultsModal() {
     const modal = document.getElementById('resultsModal');
@@ -1326,58 +895,101 @@ function renderTeamList() {
   }
 
   async function processResults() {
-    const config = disciplineConfig[currentDiscipline];
-    const inputs = document.querySelectorAll('#resultsFormContainer input');
-    resultsData = [];
+  const config = disciplineConfig[currentDiscipline];
+  const inputs = document.querySelectorAll('#resultsFormContainer input');
+  resultsData = [];
 
-    inputs.forEach(input => {
-      if (input.value) {
-        resultsData.push({
-          team: input.dataset.team,
-          result: parseFloat(input.value)
-        });
-      }
-    });
+  inputs.forEach(input => {
+    if (input.value) {
+      resultsData.push({
+        team: input.dataset.team,
+        result: parseFloat(input.value)
+      });
+    }
+  });
 
-    if (resultsData.length < 1) {
-      showResultsError('Inserire almeno un risultato!');
-      return;
+  if (resultsData.length < 1) {
+    showResultsError('Inserire almeno un risultato!');
+    return;
+  }
+
+  // Sort results based on discipline type
+  resultsData.sort((a, b) => {
+    if (config.type === 'time') return a.result - b.result;
+    if (config.type === 'score') return b.result - a.result;
+    if (config.type === 'position') return a.result - b.result;
+    return 0;
+  });
+
+  // Assign ranks with tie handling
+  let currentRank = 1;
+  let previousResult = null;
+  let skipCount = 0;
+
+  const rankedResults = resultsData.map((item, index) => {
+    // For the first item, just assign rank 1
+    if (index === 0) {
+      previousResult = item.result;
+      return { ...item, rank: currentRank };
     }
 
-    // Sort results based on discipline type
-    resultsData.sort((a, b) => {
-      if (config.type === 'time') return a.result - b.result;
-      if (config.type === 'score') return b.result - a.result;
-      return 0;
+    // For subsequent items, check if there's a tie
+    if (item.result === previousResult) {
+      // Tie - keep the same rank
+      skipCount++;
+    } else {
+      // No tie - increment rank by 1 + number of skipped positions
+      currentRank += skipCount + 1;
+      skipCount = 0;
+    }
+
+    previousResult = item.result;
+    return { ...item, rank: currentRank };
+  });
+
+  try {
+    // Update the discipline with the new results
+    await db.collection('disciplines').doc(currentDiscipline).update({
+      results: rankedResults
     });
 
-    try {
+    // Clear previous medals
+    await updateMedal(currentDiscipline, 'gold', null);
+    await updateMedal(currentDiscipline, 'silver', null);
+    await updateMedal(currentDiscipline, 'bronze', null);
 
-      await db.collection('disciplines').doc(currentDiscipline).update({
-      results: resultsData.map((item, index) => ({
-        team: item.team,
-        result: item.result,
-        rank: index + 1
-      }))
-    });
+    // Find teams for each medal position
+    const goldTeams = rankedResults.filter(r => r.rank === 1).map(r => r.team);
+    const silverTeams = rankedResults.filter(r => r.rank === 2).map(r => r.team);
+    const bronzeTeams = rankedResults.filter(r => r.rank === 3).map(r => r.team);
 
+    // Handle medals for tied positions
+    if (goldTeams.length > 0) await updateMedalsForTie('gold', goldTeams, currentDiscipline);
+    if (silverTeams.length > 0) await updateMedalsForTie('silver', silverTeams, currentDiscipline);
+    if (bronzeTeams.length > 0) await updateMedalsForTie('bronze', bronzeTeams, currentDiscipline);
 
-      // Clear previous medals
-      await updateMedal(currentDiscipline, 'gold', null);
-      await updateMedal(currentDiscipline, 'silver', null);
-      await updateMedal(currentDiscipline, 'bronze', null);
-
-      // Assign new medals
-      if (resultsData[0]) await updateMedal(currentDiscipline, 'gold', resultsData[0].team);
-      if (resultsData[1]) await updateMedal(currentDiscipline, 'silver', resultsData[1].team);
-      if (resultsData[2]) await updateMedal(currentDiscipline, 'bronze', resultsData[2].team);
-
-      toggleResultsModal();
-    } catch (error) {
-      showResultsError('Errore nell\'aggiornamento dei risultati!');
-      console.error(error);
+    toggleResultsModal();
+  } catch (error) {
+    showResultsError('Errore nell\'aggiornamento dei risultati!');
+    console.error(error);
+  }
+}
+async function initializeDisciplines() {
+  for (const discipline of disciplineList) {
+    const docRef = db.collection('disciplines').doc(discipline);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      await docRef.set({
+        gold: null,
+        silver: null,
+        bronze: null,
+        results: [],
+        completed: false
+      });
     }
   }
+}
 
   function showResultsError(message) {
     const errorDiv = document.getElementById('resultsErrors');
