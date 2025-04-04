@@ -552,13 +552,13 @@ function generateMatches(teams, maxTeams) {
     }
   });
 
-  db.collection('disciplines').onSnapshot(snapshot => {
-    snapshot.forEach(doc => {
-      disciplines[doc.id] = doc.data();
-    });
-    renderDisciplines();
-    updateLeaderboard();
+db.collection('disciplines').onSnapshot(snapshot => {
+  snapshot.forEach(doc => {
+    disciplines[doc.id] = doc.data();
   });
+  renderDisciplines();
+  updateLeaderboard();
+});
 
   // Initial render
   renderDisciplines();
@@ -647,7 +647,7 @@ function updateLeaderboard() {
         gold: 0,
         silver: 0,
         bronze: 0,
-        points: 0
+        points: calculatePoints({ gold: 0, silver: 0, bronze: 0 }) 
       };
 
       try {
@@ -741,6 +741,7 @@ function updateLeaderboard() {
     function updateLeaderboard() {
       const tbody = document.getElementById('leaderboardBody');
       tbody.innerHTML = teams
+      
         .sort((a, b) => b.points - a.points || b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze)
         .map((team, index) => `
           <tr>
@@ -781,52 +782,85 @@ async function deleteTeam(teamName) {
   if (!confirm(`Sei sicuro di voler eliminare la squadra "${teamName}"? Tutti i loro risultati verranno rimossi!`)) {
     return;
   }
-  
+
   try {
-    // Remove team from Firestore
+    // 1. Elimina la squadra principale
+    console.log('[1/4] Eliminazione squadra da Firestore');
     await db.collection('teams').doc(teamName).delete();
+
+    // 2. Prepara batch per le discipline
+    console.log('[2/4] Preparazione batch updates');
+    const batch = db.batch();
+    const disciplinesRef = db.collection('disciplines');
     
-    // Remove any medals and results associated with this team
-    const updates = [];
-    
-    // Process all disciplines
-    for (const discipline of Object.keys(disciplines)) {
-      const disciplineData = disciplines[discipline];
-      
-      // 1. Remove medals
+    // 3. Recupera dati FRESCHI delle discipline
+    console.log('[3/4] Recupero discipline aggiornate');
+    const disciplinesSnapshot = await disciplinesRef.get();
+
+    // 4. Processa ogni disciplina
+    disciplinesSnapshot.forEach(doc => {
+      const updatePayload = {};
+      const disciplineData = doc.data();
+
+      // Rimuovi medaglie
       ['gold', 'silver', 'bronze'].forEach(medalType => {
         if (disciplineData[medalType] === teamName) {
-          updates.push(
-            db.collection('disciplines').doc(discipline).update({
-              [medalType]: null
-            })
-          );
+          console.log(`Rimozione medaglia ${medalType} da ${doc.id}`);
+          updatePayload[medalType] = null;
         }
       });
-      
-      // 2. Remove from results array
+
+      // Filtra risultati
       if (disciplineData.results) {
-        const filteredResults = disciplineData.results.filter(
-          result => result.team !== teamName
-        );
+        const originalLength = disciplineData.results.length;
+        const newResults = disciplineData.results.filter(result => result.team !== teamName);
         
-        if (filteredResults.length !== disciplineData.results.length) {
-          updates.push(
-            db.collection('disciplines').doc(discipline).update({
-              results: filteredResults
-            })
-          );
+        if (newResults.length !== originalLength) {
+          console.log(`Rimozione ${originalLength - newResults.length} risultati da ${doc.id}`);
+          updatePayload.results = newResults;
         }
       }
-    }
+
+      if (Object.keys(updatePayload).length > 0) {
+        batch.update(disciplinesRef.doc(doc.id), updatePayload);
+      }
+    });
+
+    // 5. Esegui batch e forza refresh
+    console.log('[4/4] Esecuzione batch updates');
+    await batch.commit();
     
-    await Promise.all(updates);
+    // 6. Aggiornamenti post-eliminazione
+    console.log('Forzatura refresh dati');
+    await refreshAppData();
+    
+    alert('✅ Squadra eliminata con successo!');
+    
   } catch (error) {
-    console.error("Error deleting team: ", error);
-    alert('Errore nell\'eliminare la squadra!');
+    console.error('🔥 Errore durante eliminazione:', error);
+    alert(`❌ Errore: ${error.message}`);
   }
 }
-    async function updateMedalsForTie(medalType, teamNames, discipline) {
+
+// Funzione di refresh globale
+async function refreshAppData() {
+  // 1. Ricarica teams
+  const teamsSnapshot = await db.collection('teams').get();
+  teams = teamsSnapshot.docs.map(doc => doc.data());
+  
+  // 2. Ricarica discipline
+  const disciplinesSnapshot = await db.collection('disciplines').get();
+  disciplinesSnapshot.forEach(doc => {
+    disciplines[doc.id] = doc.data();
+  });
+  
+  // 3. Aggiorna UI
+  renderDisciplines();
+  updateLeaderboard();
+  renderTeamList();
+}
+
+async function updateMedalsForTie(medalType, teamNames, discipline) {
   if (teamNames.length === 1) {
     // Simple case: only one team gets this medal
     await updateMedal(discipline, medalType, teamNames[0]);
@@ -997,6 +1031,15 @@ async function initializeDisciplines() {
     errorDiv.style.display = 'block';
     setTimeout(() => errorDiv.style.display = 'none', 5000);
   }
+
+
+
+  function calculatePoints(team) {
+  return (team.gold * 4) + (team.silver * 2) + (team.bronze * 1);
+}
+
+
+
   </script>
 
 <div id="resultsModal" class="auth-modal">
