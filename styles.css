@@ -372,17 +372,27 @@ pointer-events: none;
     position: relative;
   }
 
-  .toggle-password {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: var(--primary);
-    padding: 0.5rem;
-  }
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--primary);
+  padding: 0; /* Ridotto il padding */
+  width: 30px; /* Larghezza fissa */
+  height: 30px; /* Altezza fissa */
+  display: flex; /* Per centrare l'icona */
+  align-items: center;
+  justify-content: center;
+  z-index: 2; /* Assicura che sia sopra altri elementi */
+}
+
+input[type="password"] {
+  padding-right: 40px; /* Aumenta il padding destro per fare spazio all'icona */
+}
 
   .loading {
     position: relative;
@@ -737,7 +747,6 @@ pointer-events: none;
   background: radial-gradient(ellipse at center, #cd7f32 0%, #8b4513 100%);
 }
 
-/* Improved modal for results entry */
 #resultsFormContainer {
   max-height: 60vh;
   overflow-y: auto;
