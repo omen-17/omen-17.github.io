@@ -880,7 +880,6 @@ async function updateMedalsForTie(medalType, teamNames, discipline) {
   currentDiscipline = discipline;
   const config = disciplineConfig[discipline];
   
-  // Get existing results to pre-fill the form
   const existingResults = disciplines[discipline]?.results || [];
   const existingResultsMap = {};
   existingResults.forEach(result => {
@@ -891,6 +890,7 @@ async function updateMedalsForTie(medalType, teamNames, discipline) {
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin: 0.5rem 0;">
       <span>${team.name}</span>
       <input type="number" 
+          min="0"
              step="${config.type === 'time' ? 1 : 1}"
              data-team="${team.name}"
              value="${existingResultsMap[team.name] || ''}"
