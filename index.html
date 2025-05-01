@@ -459,19 +459,42 @@
       }
     }
 
-    function handleAuthError(error) {
+function handleAuthError(error) {
+      // Controllo per il nuovo formato di errore "INVALID_LOGIN_CREDENTIALS" 
+      if (error.message && error.message.includes("INVALID_LOGIN_CREDENTIALS")) {
+        showAuthError("Credenziali non valide. Verifica email e password inserite.");
+        return;
+      }
+      
       const messages = {
-        'auth/email-already-in-use': 'Email già registrata!',
-        'auth/invalid-email': 'Email non valida!',
-        'auth/weak-password': 'Password troppo debole (min 6 caratteri)',
-        'auth/wrong-password': 'Password errata!',
-        'auth/user-not-found': 'Utente non trovato!',
-        'auth/too-many-requests': 'Troppi tentativi. Riprova più tardi.'
+        // Errori comuni di login
+        'auth/user-not-found': 'Utente non trovato. Verifica l\'email o registra un nuovo account.',
+        'auth/wrong-password': 'Password non corretta. Riprova o utilizza il recupero password.',
+        'auth/invalid-credential': 'Credenziali non valide. Verifica email e password.',
+        'auth/invalid-login-credentials': 'Credenziali non valide. Verifica email e password.',
+        'auth/user-disabled': 'Questo account è stato disabilitato. Contatta l\'amministratore.',
+        
+        // Errori di registrazione
+        'auth/email-already-in-use': 'Email già registrata! Prova ad accedere o recupera la password.',
+        'auth/invalid-email': 'Email non valida! Inserisci un indirizzo email corretto.',
+        'auth/weak-password': 'Password troppo debole (minimo 6 caratteri richiesti).',
+        
+        // Errori di rete e limiti
+        'auth/network-request-failed': 'Errore di connessione. Verifica la tua rete internet.',
+        'auth/too-many-requests': 'Troppi tentativi. Account temporaneamente bloccato per sicurezza. Riprova più tardi.',
+        'auth/popup-closed-by-user': 'Operazione annullata. La finestra è stata chiusa.',
+        
+        // Altri errori
+        'auth/requires-recent-login': 'Per motivi di sicurezza, effettua nuovamente l\'accesso.',
+        'auth/operation-not-allowed': 'Operazione non consentita. Contatta l\'amministratore.',
+        'auth/account-exists-with-different-credential': 'Email già in uso con un altro metodo di accesso.'
       };
-      showAuthError(messages[error.code] || error.message);
+      
+      // Mostra il messaggio specifico o un errore generico con il dettaglio
+      const errorMessage = messages[error.code] || `Errore di autenticazione: ${error.message.substring(0, 100)}`;
+      console.error('Auth error:', error.code, error.message);
+      showAuthError(errorMessage);
     }
-
-
 function generateMatches(teams, maxTeams) {
   const matches = [];
   for (let i = 0; i < maxTeams; i += 2) {
