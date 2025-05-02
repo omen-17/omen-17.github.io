@@ -878,26 +878,45 @@ async function refreshAppData() {
 }
 
 async function updateMedalsForTie(medalType, teamNames, discipline) {
-  if (teamNames.length === 1) {
-    // Simple case: only one team gets this medal
-    await updateMedal(discipline, medalType, teamNames[0]);
-  } else {
-    // Tie case: multiple teams share the medal
-    // Store the list of teams in the discipline document
-    await db.collection('disciplines').doc(discipline).update({
-      [medalType]: teamNames
-    });
-    
-    // Update each team's medal count
-    for (const teamName of teamNames) {
-      const team = teams.find(t => t.name === teamName);
-      if (team) {
-        team[medalType]++;
-        team.points = calculatePoints(team);
-        await db.collection('teams').doc(teamName).update(team);
-      }
+  // Recupera i dati della disciplina
+  const disciplineData = disciplines[discipline] || {};
+  
+  // Rimuovi le medaglie precedenti (se esistono)
+  const previousTeams = Array.isArray(disciplineData[medalType]) 
+    ? disciplineData[medalType] 
+    : [disciplineData[medalType]].filter(Boolean);
+
+  for (const previousTeamName of previousTeams) {
+    const previousTeam = teams.find(t => t.name === previousTeamName);
+    if (previousTeam) {
+      previousTeam[medalType] -= 1; // Decrementa il conteggio della medaglia
+      previousTeam.points = calculatePoints(previousTeam); // Ricalcola i punti
+      await db.collection('teams').doc(previousTeamName).update(previousTeam);
     }
   }
+
+  // Se non ci sono nuove squadre per il tipo di medaglia, termina qui
+  if (!teamNames || teamNames.length === 0) {
+    await db.collection('disciplines').doc(discipline).update({
+      [medalType]: null
+    });
+    return;
+  }
+
+  // Assegna le medaglie alle nuove squadre
+  for (const teamName of teamNames) {
+    const team = teams.find(t => t.name === teamName);
+    if (team) {
+      team[medalType] += 1; // Incrementa il conteggio della medaglia
+      team.points = calculatePoints(team); // Ricalcola i punti
+      await db.collection('teams').doc(teamName).update(team);
+    }
+  }
+
+  // Aggiorna il documento della disciplina con le nuove squadre
+  await db.collection('disciplines').doc(discipline).update({
+    [medalType]: teamNames
+  });
 }
 
 
