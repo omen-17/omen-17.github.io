@@ -591,8 +591,8 @@ db.collection('disciplines').onSnapshot(snapshot => {
 // Update the leaderboard to correctly handle tied positions
 function updateLeaderboard() {
   const tbody = document.getElementById('leaderboardBody');
-  
-  // Ordina le squadre in base ai punti e alle medaglie
+
+  // Ordina le squadre in base ai criteri: punti, ori, argenti, bronzi, nome
   const sortedTeams = [...teams].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;  // Punti
     if (b.gold !== a.gold) return b.gold - a.gold;          // Medaglie d'oro
@@ -603,38 +603,34 @@ function updateLeaderboard() {
 
   // Gestione dei ranghi con parimerito
   let currentRank = 1;
-  let previousTeam = null;
   let skipCount = 0;
 
   const rankedTeams = sortedTeams.map((team, index) => {
-    // Se è la prima squadra, assegna il rango 1
-    if (index === 0) {
-      previousTeam = team;
-      return { ...team, rank: currentRank };
+    if (index > 0) {
+      const previousTeam = sortedTeams[index - 1];
+      const isTied =
+        previousTeam.points === team.points &&
+        previousTeam.gold === team.gold &&
+        previousTeam.silver === team.silver &&
+        previousTeam.bronze === team.bronze;
+
+      if (isTied) {
+        // Se il team è a parimerito, mantieni lo stesso rango
+        skipCount++;
+      } else {
+        // Altrimenti, incrementa il rango saltando le posizioni condivise
+        currentRank += skipCount + 1;
+        skipCount = 0;
+      }
     }
 
-    // Controlla se il team è a parimerito con il precedente
-    const isTied = 
-      previousTeam.points === team.points &&
-      previousTeam.gold === team.gold &&
-      previousTeam.silver === team.silver &&
-      previousTeam.bronze === team.bronze;
-
-    if (isTied) {
-      // Se c'è un parimerito, mantieni lo stesso rango
-      skipCount++;
-    } else {
-      // Altrimenti, aggiorna il rango incrementandolo di 1 + il numero di posizioni saltate
-      currentRank += skipCount + 1;
-      skipCount = 0;
-    }
-
-    previousTeam = team;
     return { ...team, rank: currentRank };
   });
 
   // Genera la tabella HTML
-  tbody.innerHTML = rankedTeams.map(team => `
+  tbody.innerHTML = rankedTeams
+    .map(
+      (team) => `
     <tr>
       <td>#${team.rank} ${team.name}</td>
       <td>${team.points}</td>
@@ -642,7 +638,9 @@ function updateLeaderboard() {
       <td>${team.silver}</td>
       <td>${team.bronze}</td>
     </tr>
-  `).join(''); 
+  `
+    )
+    .join('');
 }
     // Admin features
     function initializeAdminFeatures() {
