@@ -287,23 +287,7 @@ section { max-width: 940px; margin: 0 auto; padding: 4rem 1.5rem; }
 .sc.fourth { background: #EEF8FF; border: 1px solid #0085C7; color: #004a80; }
 
 /* TABS */
-.tabs-row {
-  display: flex; border-bottom: 2px solid var(--border);
-  margin-bottom: 1.5rem;
-}
-.tab-btn {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.86rem; font-weight: 600;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  background: none; border: none; cursor: pointer;
-  color: var(--muted); padding: 10px 26px;
-  border-bottom: 3px solid transparent; margin-bottom: -2px;
-  transition: color .2s, border-color .2s;
-}
-.tab-btn.active { color: var(--navy); border-bottom-color: var(--navy); }
-.tab-btn:hover { color: var(--navy); }
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
+
 .disc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 1rem; }
 
 /* TEAMS */
@@ -560,7 +544,7 @@ footer {
     <div class="hstat"><div class="n">10</div><div class="l">Discipline</div></div>
     <div class="hstat"><div class="n" id="stat-sq">0</div><div class="l">Squadre</div></div>
     <div class="hstat"><div class="n">4</div><div class="l">Punti Oro</div></div>
-    <div class="hstat"><div class="n">5</div><div class="l">Atleti/Squadra</div></div>
+    <div class="hstat"><div class="n">4</div><div class="l">Atleti/Squadra</div></div>
   </div>
 </div>
 
@@ -602,8 +586,8 @@ footer {
       <ul>
         <li>Almeno <strong>7 discipline</strong> selezionate in base alle tempistiche.</li>
         <li>Squadre formate <strong>ad estrazione</strong>; ogni squadra riceve un colore per la maglietta.</li>
-        <li>Ogni squadra: <strong>5 membri</strong>, 4 partecipano per disciplina (salvo indicazione diversa).</li>
-        <li><strong>10 giudici</strong> con pieno potere decisionale in caso di vuoto normativo.</li>
+        <li>Ogni squadra: <strong>4 membri</strong>, tutti partecipano per disciplina (salvo indicazione diversa).</li>
+        <li><strong>5 giudici</strong> con pieno potere decisionale in caso di vuoto normativo.</li>
       </ul>
     </div>
 
@@ -641,140 +625,112 @@ footer {
     <span class="sec-title">Calendario Gare</span>
     <span class="sec-sub">Programma Ufficiale</span>
   </div>
-  <div class="tabs-row">
-    <button class="tab-btn active" onclick="switchDay(0)">Giorno 1</button>
-    <button class="tab-btn" onclick="switchDay(1)">Giorno 2</button>
-  </div>
 
-  <div class="tab-panel active" id="day-0">
-    <div class="disc-grid">
+  <div class="disc-grid">
 
-      <div class="card c1">
-        <div class="card-top"><h3>Carriola Umana</h3><span class="ev-badge">4/5 · 2 sq.</span></div>
-        <ul>
-          <li>Al via un membro beve, poi si parte in posizione carriola (chi ha bevuto = carriola).</li>
-          <li>Alla sedia chi portava beve e diventa carriola; si torna al via.</li>
-          <li>Poi parte l'altra coppia con lo stesso schema.</li>
-          <li>Cadere non comporta penalità ma si avanza solo in posizione carriola.</li>
-        </ul>
-        <p class="penalty">⚠ Sanzione: +5 sec per infrazione.</p>
-        <div class="wins">Vince la squadra più veloce.</div>
-      </div>
-
-      <div class="card c2">
-        <div class="card-top"><h3>Corsa sui Mattoni</h3><span class="ev-badge">4/5 · 1 alla volta</span></div>
-        <ul>
-          <li>8 mattoni per squadra. Tutti bevono prima (fuori dal tempo).</li>
-          <li>Percorso ~10–15 m calpestando <strong>solo i mattoni</strong>.</li>
-          <li>Disposizione libera, ma solo dopo il via.</li>
-        </ul>
-        <p class="penalty">⚠ Piede sul prato: +5 s &nbsp;·&nbsp; Mano sul prato: +1 s</p>
-        <div class="wins">Vince la squadra più veloce.</div>
-      </div>
-
-      <div class="card c3">
-        <div class="card-top"><h3>La Coppia che Scoppia</h3><span class="ev-badge">4/5 · 1 alla volta</span></div>
-        <ul>
-          <li>2 coppie in sequenza. Uno bendato, uno guida. La guida beve al via.</li>
-          <li>Il bendato segue un percorso ad ostacoli senza essere toccato.</li>
-          <li>A fine percorso il bendato beve, poi ritorno. La benda passa alla coppia 2.</li>
-          <li>Il tempo si ferma quando entrambi della seconda coppia superano la linea.</li>
-        </ul>
-        <div class="wins">Vince la squadra più veloce.</div>
-      </div>
-
-      <div class="card c4">
-        <div class="card-top"><h3>Tiro a Canestro</h3><span class="ev-badge">4/5 · 1 alla volta</span></div>
-        <ul>
-          <li>Un concorrente alla volta beve prima di tirare.</li>
-          <li>Ogni bevuta = <strong>30 secondi</strong> per fare più canestri possibili.</li>
-          <li>Tiro da dietro la linea; i compagni aiutano a recuperare il pallone.</li>
-        </ul>
-        <div class="wins">Vince la squadra con più canestri totali.</div>
-      </div>
-
-      <div class="card c5">
-        <div class="card-top"><h3>Bruco</h3><span class="ev-badge">5/5 · 2 sq.</span></div>
-        <ul>
-          <li>Tutti i componenti sono bendati, seduti in fila nella stessa direzione, ognuno con un contenitore.</li>
-          <li>Il primo ha il contenitore pieno di <strong>farina</strong> e deve cercare di passarla nel contenitore del compagno alle spalle, facendone cadere il meno possibile.</li>
-          <li>Gli altri concorrenti continuano così fino all'ultimo della fila.</li>
-        </ul>
-        <div class="wins">Vince la squadra che riesce a tenere più farina nell'ultimo contenitore.</div>
-      </div>
-
-      <div class="card c1">
-        <div class="card-top"><h3>Bicchieri in Bilico</h3><span class="ev-badge">5/5 · 2–3 sq.</span></div>
-        <ul>
-          <li>Ogni squadra sceglie il concorrente che fa <strong>2 bevute</strong> e trova una posizione da mantenere per <strong>1 minuto e 30 secondi</strong>.</li>
-          <li>Una volta scelta la posizione, non può essere cambiata.</li>
-          <li>I compagni hanno il tempo stabilito per appoggiare sul concorrente fermo il maggior numero di bicchieri possibile. Vengono forniti <strong>35 bicchieri</strong> a squadra.</li>
-          <li>I bicchieri possono essere posizionati su qualsiasi sporgenza del corpo, anche a castello di carte, ma <strong>non possono essere impilati</strong>.</li>
-          <li>I bicchieri caduti a terra non possono più essere usati.</li>
-        </ul>
-        <div class="wins">Vince la squadra con più bicchieri posizionati alla fine del tempo.</div>
-      </div>
-
-      <div class="card c2">
-        <div class="card-top"><h3>Staffetta della Birra</h3><span class="ev-badge">4/5 · 2 sq.</span></div>
-        <ul>
-          <li>Si riempiono 4 bicchieri di birra e si posizionano davanti ai 4 concorrenti.</li>
-          <li>I 4 concorrenti tengono entrambi i palmi delle mani appoggiati sul tavolo.</li>
-          <li>Al via dei giudici il primo inizia a bere. Quando ha finito, sbatte il fondo del bicchiere sul tavolo: solo allora può partire il concorrente successivo.</li>
-          <li>Non si possono alzare i palmi prima di iniziare la propria bevuta.</li>
-        </ul>
-        <p class="penalty">Sanzione: +1 sec per ogni volta che si alzano i palmi in anticipo.</p>
-        <div class="wins">Vince la squadra più veloce.</div>
-      </div>
-
-      <div class="card cg">
-        <div class="card-top"><h3>Indovinelli Matti</h3><span class="ev-badge">5/5 · Tutte insieme</span></div>
-        <ul>
-          <li>Tutte le squadre si dispongono attorno ai giudici e ricevono contemporaneamente il primo indovinello.</li>
-          <li>Quando una squadra crede di aver risolto il quesito, manda un giocatore dai giudici con la risposta. Se è sbagliata, quel giocatore beve; se è giusta, riceve il quesito successivo.</li>
-          <li>Per accedere al <strong>quinto e ultimo quesito</strong>, dopo aver risposto correttamente al quarto, tutta la squadra deve farsi una bevuta.</li>
-          <li><strong>Jolly:</strong> ogni squadra ha un solo jolly. Tutta la squadra si fa una bevuta per saltare una domanda. Utilizzabile solo per i primi 3 quesiti.</li>
-        </ul>
-        <div class="wins">Vince la squadra che ci impiega meno tempo.</div>
-      </div>
-
+    <div class="card c1">
+      <div class="card-top"><h3>Carriola Umana</h3><span class="ev-badge">tutti · 2 sq.</span></div>
+      <ul>
+        <li>Al via un membro beve, poi si parte in posizione carriola (chi ha bevuto = carriola).</li>
+        <li>Alla sedia chi portava beve e diventa carriola; si torna al via.</li>
+        <li>Poi parte l'altra coppia con lo stesso schema.</li>
+        <li>Cadere non comporta penalità ma si avanza solo in posizione carriola.</li>
+      </ul>
+      <p class="penalty">Sanzione: +5 sec per infrazione.</p>
+      <div class="wins">Vince la squadra più veloce.</div>
     </div>
-  </div>
 
-  <div class="tab-panel" id="day-1">
-    <div class="disc-grid">
-
-      <div class="card c5">
-        <div class="card-top"><h3>Tiro alla Corda</h3><span class="ev-badge">5/5 · Torneo</span></div>
-        <ul>
-          <li>Torneo a eliminazione diretta, 2 squadre alla volta.</li>
-          <li>Vince chi fa calpestare la linea centrale all'avversario.</li>
-        </ul>
-        <div class="wins">Vince la squadra che conquista la finale.</div>
-      </div>
-
-      <div class="card c1">
-        <div class="card-top"><h3>Staffetta delle Spugne</h3><span class="ev-badge">4/5 · 1 alla volta</span></div>
-        <ul>
-          <li>Due secchi a distanza: uno pieno d'acqua, uno vuoto.</li>
-          <li>I concorrenti trasportano l'acqua con una spugna, passandola lungo la fila.</li>
-        </ul>
-        <div class="wins">Vince la squadra che trasferisce più acqua.</div>
-      </div>
-
-      <div class="card c4">
-        <div class="card-top"><h3>Corsa dei Sacchi</h3><span class="ev-badge">5/5 · Staffetta</span></div>
-        <ul>
-          <li>Ogni atleta salta nel sacco fino alla linea e torna. Il successivo parte solo quando il precedente taglia il traguardo.</li>
-        </ul>
-        <div class="wins">Vince la squadra più veloce.</div>
-      </div>
-
+    <div class="card c2">
+      <div class="card-top"><h3>Corsa sui Mattoni</h3><span class="ev-badge">tutti · 1 alla volta</span></div>
+      <ul>
+        <li>8 mattoni per squadra. Tutti bevono prima (fuori dal tempo).</li>
+        <li>Percorso ~10–15 m calpestando <strong>solo i mattoni</strong>.</li>
+        <li>Disposizione libera, ma solo dopo il via.</li>
+      </ul>
+      <p class="penalty">Piede sul prato: +5 s &nbsp;·&nbsp; Mano sul prato: +1 s</p>
+      <div class="wins">Vince la squadra più veloce.</div>
     </div>
+
+    <div class="card c3">
+      <div class="card-top"><h3>La Coppia che Scoppia</h3><span class="ev-badge">tutti · 1 alla volta</span></div>
+      <ul>
+        <li>2 coppie in sequenza. Uno bendato, uno guida. La guida beve al via.</li>
+        <li>Il bendato segue un percorso ad ostacoli senza essere toccato.</li>
+        <li>A fine percorso il bendato beve, poi ritorno. La benda passa alla coppia 2.</li>
+        <li>Il tempo si ferma quando entrambi della seconda coppia superano la linea.</li>
+      </ul>
+      <div class="wins">Vince la squadra più veloce.</div>
+    </div>
+
+    <div class="card c4">
+      <div class="card-top"><h3>Tiro a Canestro</h3><span class="ev-badge">tutti · 1 alla volta</span></div>
+      <ul>
+        <li>Un concorrente alla volta beve prima di tirare.</li>
+        <li>Ogni bevuta = <strong>30 secondi</strong> per fare più canestri possibili.</li>
+        <li>Tiro da dietro la linea; i compagni aiutano a recuperare il pallone.</li>
+      </ul>
+      <div class="wins">Vince la squadra con più canestri totali.</div>
+    </div>
+
+    <div class="card c5">
+      <div class="card-top"><h3>Bruco</h3><span class="ev-badge">tutti · 2 sq.</span></div>
+      <ul>
+        <li>Tutti i componenti sono bendati, seduti in fila nella stessa direzione, ognuno con un contenitore.</li>
+        <li>Il primo ha il contenitore pieno di <strong>farina</strong> e deve cercare di passarla nel contenitore del compagno alle spalle, facendone cadere il meno possibile.</li>
+        <li>Gli altri concorrenti continuano così fino all'ultimo della fila.</li>
+      </ul>
+      <div class="wins">Vince la squadra che riesce a tenere più farina nell'ultimo contenitore.</div>
+    </div>
+
+    <div class="card c1">
+      <div class="card-top"><h3>Bicchieri in Bilico</h3><span class="ev-badge">tutti · 2–3 sq.</span></div>
+      <ul>
+        <li>Ogni squadra sceglie il concorrente che fa <strong>2 bevute</strong> e trova una posizione da mantenere per <strong>1 minuto e 30 secondi</strong>.</li>
+        <li>Una volta scelta la posizione, non può essere cambiata.</li>
+        <li>I compagni hanno il tempo stabilito per appoggiare sul concorrente fermo il maggior numero di bicchieri possibile. Vengono forniti <strong>35 bicchieri</strong> a squadra.</li>
+        <li>I bicchieri possono essere posizionati su qualsiasi sporgenza del corpo, anche a castello di carte, ma <strong>non possono essere impilati</strong>.</li>
+        <li>I bicchieri caduti a terra non possono più essere usati.</li>
+      </ul>
+      <div class="wins">Vince la squadra con più bicchieri posizionati alla fine del tempo.</div>
+    </div>
+
+    <div class="card c2">
+      <div class="card-top"><h3>Staffetta della Birra</h3><span class="ev-badge">tutti · 2 sq.</span></div>
+      <ul>
+        <li>Si riempiono 4 bicchieri di birra e si posizionano davanti ai 4 concorrenti.</li>
+        <li>I 4 concorrenti tengono entrambi i palmi delle mani appoggiati sul tavolo.</li>
+        <li>Al via dei giudici il primo inizia a bere. Quando ha finito, sbatte il fondo del bicchiere sul tavolo: solo allora può partire il concorrente successivo.</li>
+        <li>Non si possono alzare i palmi prima di iniziare la propria bevuta.</li>
+      </ul>
+      <p class="penalty">Sanzione: +1 sec per ogni volta che si alzano i palmi in anticipo.</p>
+      <div class="wins">Vince la squadra più veloce.</div>
+    </div>
+
+    <div class="card cg">
+      <div class="card-top"><h3>Indovinelli Matti</h3><span class="ev-badge">tutti · Tutte insieme</span></div>
+      <ul>
+        <li>Tutte le squadre si dispongono attorno ai giudici e ricevono contemporaneamente il primo indovinello.</li>
+        <li>Quando una squadra crede di aver risolto il quesito, manda un giocatore dai giudici con la risposta. Se è sbagliata, quel giocatore beve; se è giusta, riceve il quesito successivo.</li>
+        <li>Per accedere al <strong>quinto e ultimo quesito</strong>, dopo aver risposto correttamente al quarto, tutta la squadra deve farsi una bevuta.</li>
+        <li><strong>Jolly:</strong> ogni squadra ha un solo jolly. Tutta la squadra si fa una bevuta per saltare una domanda. Utilizzabile solo per i primi 3 quesiti.</li>
+      </ul>
+      <div class="wins">Vince la squadra che ci impiega meno tempo.</div>
+    </div>
+
+    <div class="card" style="border-left-color:var(--red);background:linear-gradient(135deg,#fff 80%,rgba(223,0,36,0.04));grid-column:1/-1;">
+      <div class="card-top">
+        <h3 style="font-size:1.3rem;letter-spacing:.1em;">FESTONA FINALE</h3>
+        <span class="ev-badge" style="background:var(--red);color:#fff;border-color:var(--red);">Tutti · Chiusura</span>
+      </div>
+      <p style="color:#4a4a4a;font-size:.9rem;">La cerimonia di chiusura ufficiale delle Alcoolimpiadi II. Consegna della Coppa Olimpica alla squadra vincitrice, brindisi generale e gloria eterna per i campioni.</p>
+      <div class="wins" style="color:var(--red);">Tutti vincono. Nessuno è sobrio.</div>
+    </div>
+
   </div>
+
 </section>
 
-<!-- CLASSIFICA -->
+>
 <section id="classifica" style="background:var(--off);max-width:100%;padding:3.5rem 0;">
 <div style="max-width:940px;margin:0 auto;padding:0 1.5rem;">
   <div class="sec-header">
@@ -857,6 +813,20 @@ footer {
         
       </div>
       <div style="font-family:'Oswald',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--blue);color:var(--white);border-radius:2px;padding:3px 10px;">Official Partner</div>
+    </div>
+
+    <div class="card c4" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:2rem 1.5rem;gap:.8rem;">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);">La Petrarca</div>
+      </div>
+      <div style="font-family:'Oswald',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--green);color:var(--white);border-radius:2px;padding:3px 10px;">Official Partner</div>
+    </div>
+
+    <div class="card c5" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:2rem 1.5rem;gap:.8rem;">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);">Panilli</div>
+      </div>
+      <div style="font-family:'Oswald',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--red);color:var(--white);border-radius:2px;padding:3px 10px;">Official Partner</div>
     </div>
 
   </div>
@@ -1001,11 +971,6 @@ footer {
     if (!confirm('Rimuovere "'+teams[i]+'"?')) return;
     delete scores[teams[i]]; teams.splice(i,1);
     save(); renderTeams(); renderClassifica();
-  }
-
-  function switchDay(n) {
-    document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('active',i===n);});
-    document.querySelectorAll('.tab-panel').forEach(function(p,i){p.classList.toggle('active',i===n);});
   }
 
   function populateSel() {
