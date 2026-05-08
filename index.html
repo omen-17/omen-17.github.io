@@ -914,59 +914,80 @@ var firebaseConfig = {
     var el = document.getElementById('sync-status');
     if (!el) return;
     var labels = {
-      connecting: { text: '● Connessione…',        color: '#C9A533' },
-      connected:  { text: '● Sync attivo',          color: '#009F6B' },
-      error:      { text: '● Errore sync: '+(msg||''), color: '#DF0024' },
-      local:      { text: '● Solo locale',           color: '#C9A533' }
+      connecting: { text: '● Connessione…', color: '#C9A533' },
+      connected:  { text: '● Sync attivo',  color: '#009F6B' },
+      error:      { text: '● Errore Firebase', color: '#DF0024' },
+      local:      { text: '● Solo locale',  color: '#C9A533' }
     };
     var s = labels[state] || labels.local;
-    el.textContent = s.text; el.style.color = s.color;
-    el.title = msg || '';
+    el.textContent = s.text;
+    el.style.color = s.color;
+    el.title = msg ? ('Dettaglio: ' + msg) : '';
+    // Mostra errore esteso in un banner sotto la navbar
+    var banner = document.getElementById('firebase-error-banner');
+    if (state === 'error' && msg) {
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'firebase-error-banner';
+        banner.style.cssText = 'background:#FFF5F5;border-bottom:1px solid #fcc;padding:8px 2rem;font-size:.82rem;color:#DF0024;font-family:monospace;';
+        document.body.insertBefore(banner, document.body.children[2]);
+      }
+      banner.textContent = 'Firebase: ' + msg;
+    } else if (banner) {
+      banner.remove();
+    }
   }
 
   function initFirebase() {
-    // Detect unconfigured placeholder
     if (!FIREBASE_CONFIG.databaseURL || FIREBASE_CONFIG.databaseURL.indexOf('IL_TUO') !== -1) {
-      fallbackToLocal('Config Firebase non impostata');
+      fallbackToLocal('databaseURL non configurato');
       return;
     }
     try {
       var app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
       db = app.database();
 
-      // Monitor actual network connection
       db.ref('.info/connected').on('value', function(snap) {
         if (snap.val() === true) {
           showSyncStatus('connected');
         } else if (fbReady) {
-          // Already had data once — show reconnecting
           showSyncStatus('connecting');
         }
       });
 
-      // Main data listener — success AND error callbacks
       db.ref('alco').on('value',
         function(snap) {
+          var data = snap.val();
+          if (data === null) {
+            // DB vuoto: migra i dati localStorage se presenti
+            var lt = JSON.parse(localStorage.getItem('alco_teams')  || '[]');
+            var ls = JSON.parse(localStorage.getItem('alco_scores') || '{}');
+            if (lt.length > 0) {
+              db.ref('alco').set({ teams: lt, scores: ls });
+              return; // il listener rifirmerà con i dati appena scritti
+            }
+            teams = []; scores = {};
+          } else {
+            var rawTeams = data.teams || [];
+            teams  = Array.isArray(rawTeams) ? rawTeams : Object.values(rawTeams).filter(function(v){ return typeof v === 'string'; });
+            scores = data.scores || {};
+          }
+          // Aggiorna localStorage come backup offline
+          localStorage.setItem('alco_teams',  JSON.stringify(teams));
+          localStorage.setItem('alco_scores', JSON.stringify(scores));
           fbReady = true;
-          var data = snap.val() || {};
-          // Firebase may return arrays as {0:..,1:..} objects — normalise
-          var rawTeams = data.teams || [];
-          teams  = Array.isArray(rawTeams) ? rawTeams : Object.values(rawTeams);
-          scores = data.scores || {};
           renderTeams();
           renderClassifica();
-          document.getElementById('stat-sq').textContent = teams.length;
         },
         function(err) {
-          console.error('Firebase read error:', err);
-          showSyncStatus('error', err.code || err.message);
+          showSyncStatus('error', err.code + ' — ' + err.message);
           fallbackToLocal(err.message);
         }
       );
 
       showSyncStatus('connecting');
     } catch(e) {
-      console.error('Firebase init error:', e);
+      showSyncStatus('error', e.message);
       fallbackToLocal(e.message);
     }
   }
@@ -980,15 +1001,15 @@ var firebaseConfig = {
   }
 
   function save() {
+    // Salva sempre su localStorage come backup
+    localStorage.setItem('alco_teams',  JSON.stringify(teams));
+    localStorage.setItem('alco_scores', JSON.stringify(scores));
     if (db) {
       db.ref('alco').set({ teams: teams, scores: scores })
         .catch(function(err) {
-          console.error('Firebase write error:', err);
-          showSyncStatus('error', err.code || err.message);
+          showSyncStatus('error', err.code + ' — ' + err.message);
         });
     } else {
-      localStorage.setItem('alco_teams',  JSON.stringify(teams));
-      localStorage.setItem('alco_scores', JSON.stringify(scores));
       renderTeams(); renderClassifica();
     }
   }
