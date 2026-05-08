@@ -901,117 +901,127 @@ const firebaseConfig = {
   measurementId: "G-6Z5JGYSJ16"
 };
 
-
   // ──────────────────────────────────────────────────────────────────────────
 
   var isJudge = false;
-  var teams  = [];
-  var scores = {};
   var db = null;
   var fbReady = false;
+
+  // ── Carica subito da localStorage — la pagina non è mai vuota ──
+  var teams  = JSON.parse(localStorage.getItem('alco_teams')  || '[]');
+  var scores = JSON.parse(localStorage.getItem('alco_scores') || '{}');
+
+  function dbLog(msg, ok) {
+    var panel = document.getElementById('db-log');
+    if (!panel) return;
+    var line = document.createElement('div');
+    var t = new Date().toLocaleTimeString('it');
+    line.textContent = '[' + t + '] ' + msg;
+    line.style.color = ok === false ? '#DF0024' : ok === true ? '#009F6B' : '#555';
+    panel.insertBefore(line, panel.firstChild);
+    // Keep last 10 lines
+    while (panel.children.length > 10) panel.removeChild(panel.lastChild);
+  }
+
+  function save() {
+    localStorage.setItem('alco_teams',  JSON.stringify(teams));
+    localStorage.setItem('alco_scores', JSON.stringify(scores));
+    dbLog('localStorage OK — ' + teams.length + ' squadre', true);
+    if (db) {
+      dbLog('Scrittura Firebase in corso…', null);
+      db.ref('alco').set({ teams: teams, scores: scores })
+        .then(function() {
+          showSyncStatus('connected');
+          dbLog('Scrittura Firebase OK', true);
+        })
+        .catch(function(err) {
+          var msg = (err && (err.code || err.message)) || String(err);
+          showSyncStatus('error', msg);
+          dbLog('Scrittura Firebase FALLITA: ' + msg, false);
+        });
+    }
+    renderTeams();
+    renderClassifica();
+  }
 
   function showSyncStatus(state, msg) {
     var el = document.getElementById('sync-status');
     if (!el) return;
-    var labels = {
+    var cfg = {
       connecting: { text: '● Connessione…', color: '#C9A533' },
       connected:  { text: '● Sync attivo',  color: '#009F6B' },
       error:      { text: '● Errore Firebase', color: '#DF0024' },
       local:      { text: '● Solo locale',  color: '#C9A533' }
     };
-    var s = labels[state] || labels.local;
+    var s = cfg[state] || cfg.local;
     el.textContent = s.text;
-    el.style.color = s.color;
-    el.title = msg ? ('Dettaglio: ' + msg) : '';
-    // Mostra errore esteso in un banner sotto la navbar
-    var banner = document.getElementById('firebase-error-banner');
-    if (state === 'error' && msg) {
+    el.style.color  = s.color;
+    el.title = msg || '';
+    var banner = document.getElementById('fb-err-banner');
+    if ((state === 'error' || state === 'local') && msg) {
       if (!banner) {
         banner = document.createElement('div');
-        banner.id = 'firebase-error-banner';
-        banner.style.cssText = 'background:#FFF5F5;border-bottom:1px solid #fcc;padding:8px 2rem;font-size:.82rem;color:#DF0024;font-family:monospace;';
-        document.body.insertBefore(banner, document.body.children[2]);
+        banner.id = 'fb-err-banner';
+        banner.style.cssText = 'background:#FFFBEB;border-bottom:2px solid #F4C300;padding:9px 2rem;font-size:.8rem;color:#7A5F00;font-family:monospace;position:relative;z-index:99;';
+        var ref = document.getElementById('judge-banner');
+        ref.parentNode.insertBefore(banner, ref.nextSibling);
       }
-      banner.textContent = 'Firebase: ' + msg;
+      banner.style.background = state === 'error' ? '#FFF5F5' : '#FFFBEB';
+      banner.style.borderColor = state === 'error' ? '#fcc' : '#F4C300';
+      banner.style.color = state === 'error' ? '#DF0024' : '#7A5F00';
+      banner.textContent = 'Firebase — ' + msg;
     } else if (banner) {
       banner.remove();
     }
   }
 
   function initFirebase() {
-    if (!FIREBASE_CONFIG.databaseURL || FIREBASE_CONFIG.databaseURL.indexOf('IL_TUO') !== -1) {
-      fallbackToLocal('databaseURL non configurato');
-      return;
+    if (!FIREBASE_CONFIG.databaseURL) {
+      showSyncStatus('local', 'databaseURL mancante nel config — aggiungilo dal pannello Realtime Database su console.firebase.google.com'); return;
+    }
+    if (FIREBASE_CONFIG.databaseURL.indexOf('IL_TUO') !== -1) {
+      showSyncStatus('local', 'Config non aggiornato — sostituisci i valori placeholder nel codice'); return;
     }
     try {
       var app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
       db = app.database();
+      showSyncStatus('connecting');
 
       db.ref('.info/connected').on('value', function(snap) {
-        if (snap.val() === true) {
-          showSyncStatus('connected');
-        } else if (fbReady) {
-          showSyncStatus('connecting');
-        }
+        if (snap.val() === true) showSyncStatus('connected');
+        else if (fbReady)        showSyncStatus('connecting');
       });
 
       db.ref('alco').on('value',
         function(snap) {
           var data = snap.val();
+          dbLog('Lettura Firebase: ' + (data === null ? 'vuoto' : JSON.stringify(Object.keys(data))), data !== null);
           if (data === null) {
-            // DB vuoto: migra i dati localStorage se presenti
-            var lt = JSON.parse(localStorage.getItem('alco_teams')  || '[]');
-            var ls = JSON.parse(localStorage.getItem('alco_scores') || '{}');
-            if (lt.length > 0) {
-              db.ref('alco').set({ teams: lt, scores: ls });
-              return; // il listener rifirmerà con i dati appena scritti
+            if (teams.length > 0) {
+              dbLog('DB vuoto — migrazione dati locali (' + teams.length + ' squadre)…', null);
+              db.ref('alco').set({ teams: teams, scores: scores })
+                .then(function(){ dbLog('Migrazione OK', true); })
+                .catch(function(err){ dbLog('Migrazione FALLITA: ' + (err.code||err.message), false); });
             }
-            teams = []; scores = {};
           } else {
-            var rawTeams = data.teams || [];
-            teams  = Array.isArray(rawTeams) ? rawTeams : Object.values(rawTeams).filter(function(v){ return typeof v === 'string'; });
+            var raw = data.teams || [];
+            teams  = Array.isArray(raw) ? raw : Object.values(raw).filter(function(v){ return typeof v === 'string'; });
             scores = data.scores || {};
+            localStorage.setItem('alco_teams',  JSON.stringify(teams));
+            localStorage.setItem('alco_scores', JSON.stringify(scores));
+            dbLog('Dati aggiornati: ' + teams.length + ' squadre', true);
+            renderTeams();
+            renderClassifica();
           }
-          // Aggiorna localStorage come backup offline
-          localStorage.setItem('alco_teams',  JSON.stringify(teams));
-          localStorage.setItem('alco_scores', JSON.stringify(scores));
           fbReady = true;
-          renderTeams();
-          renderClassifica();
         },
         function(err) {
-          showSyncStatus('error', err.code + ' — ' + err.message);
-          fallbackToLocal(err.message);
+          var msg = (err.code || err.message);
+          showSyncStatus('error', msg);
+          dbLog('Errore listener: ' + msg, false);
         }
       );
-
-      showSyncStatus('connecting');
-    } catch(e) {
-      showSyncStatus('error', e.message);
-      fallbackToLocal(e.message);
-    }
-  }
-
-  function fallbackToLocal(reason) {
-    db = null;
-    teams  = JSON.parse(localStorage.getItem('alco_teams')  || '[]');
-    scores = JSON.parse(localStorage.getItem('alco_scores') || '{}');
-    showSyncStatus('local', reason);
-    renderTeams(); renderClassifica();
-  }
-
-  function save() {
-    // Salva sempre su localStorage come backup
-    localStorage.setItem('alco_teams',  JSON.stringify(teams));
-    localStorage.setItem('alco_scores', JSON.stringify(scores));
-    if (db) {
-      db.ref('alco').set({ teams: teams, scores: scores })
-        .catch(function(err) {
-          showSyncStatus('error', err.code + ' — ' + err.message);
-        });
-    } else {
-      renderTeams(); renderClassifica();
-    }
+    } catch(e) { showSyncStatus('error', e.message); }
   }
 
   initFirebase();
