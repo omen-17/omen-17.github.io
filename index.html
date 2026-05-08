@@ -902,7 +902,7 @@ footer {
 
   // ──────────────────────────────────────────────────────────────────────────
 
-  var isJudge = false;
+  var isJudge = localStorage.getItem('alco_judge') === 'true';
   var _writing = false;
   var db = null;
   var fbReady = false;
@@ -1193,22 +1193,24 @@ function showSyncStatus(state, msg) {
   }
   function closeLogin(){document.getElementById('ov-login').classList.remove('on');}
 
-  function doLogin(){
-    if (document.getElementById('login-pass').value===JUDGE_PASSWORD){
-      isJudge=true; closeLogin(); applyJudge(); renderTeams();
+function doLogin(){
+    if (document.getElementById('login-pass').value === JUDGE_PASSWORD){
+        isJudge = true;
+        localStorage.setItem('alco_judge', 'true');  // ← aggiungi
+        closeLogin(); applyJudge(); renderTeams();
     } else {
-      document.getElementById('login-err').classList.add('on');
-      document.getElementById('login-pass').value='';
-      document.getElementById('login-pass').focus();
+        document.getElementById('login-err').classList.add('on');
+        document.getElementById('login-pass').value = '';
+        document.getElementById('login-pass').focus();
     }
-  }
+}
 
-  function doLogout(){
+function doLogout(){
     if (!confirm('Uscire dalla modalità giudice?')) return;
-    isJudge=false; applyJudge(); renderTeams();
-  }
-
-  document.getElementById('ov-login').addEventListener('click',function(e){if(e.target===this)closeLogin();});
+    isJudge = false;
+    localStorage.removeItem('alco_judge');  // ← aggiungi
+    applyJudge(); renderTeams();
+}  document.getElementById('ov-login').addEventListener('click',function(e){if(e.target===this)closeLogin();});
   document.getElementById('ov-medals').addEventListener('click',function(e){if(e.target===this)closeMedals();});
 
   applyJudge(); renderTeams(); renderClassifica();
