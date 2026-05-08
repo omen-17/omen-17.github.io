@@ -904,6 +904,7 @@ var FIREBASE_CONFIG= {
   // ──────────────────────────────────────────────────────────────────────────
 
   var isJudge = false;
+  var _writing = false;
   var db = null;
   var fbReady = false;
 
@@ -923,28 +924,29 @@ var FIREBASE_CONFIG= {
     while (panel.children.length > 10) panel.removeChild(panel.lastChild);
   }
 
-  function save() {
+function save() {
     localStorage.setItem('alco_teams',  JSON.stringify(teams));
     localStorage.setItem('alco_scores', JSON.stringify(scores));
-    dbLog('localStorage OK — ' + teams.length + ' squadre', true);
-    if (db) {
-      dbLog('Scrittura Firebase in corso…', null);
-      db.ref('alco').set({ teams: teams, scores: scores })
-        .then(function() {
-          showSyncStatus('connected');
-          dbLog('Scrittura Firebase OK', true);
-        })
-        .catch(function(err) {
-          var msg = (err && (err.code || err.message)) || String(err);
-          showSyncStatus('error', msg);
-          dbLog('Scrittura Firebase FALLITA: ' + msg, false);
-        });
-    }
     renderTeams();
     renderClassifica();
-  }
+    if (db) {
+        _writing = true;
+        db.ref('alco').set({ teams: teams, scores: scores })
+            .then(function() {
+                _writing = false;
+                showSyncStatus('connected');
+                dbLog('Scrittura Firebase OK', true);
+            })
+            .catch(function(err) {
+                _writing = false;
+                var msg = (err && (err.code || err.message)) || String(err);
+                showSyncStatus('error', msg);
+                dbLog('Scrittura Firebase FALLITA: ' + msg, false);
+            });
+    }
 
-  function showSyncStatus(state, msg) {
+}  
+function showSyncStatus(state, msg) {
     var el = document.getElementById('sync-status');
     if (!el) return;
     var cfg = {
@@ -994,6 +996,7 @@ var FIREBASE_CONFIG= {
 
       db.ref('alco').on('value',
         function(snap) {
+          if (_writing) { fbReady = true; return; } 
           var data = snap.val();
           dbLog('Lettura Firebase: ' + (data === null ? 'vuoto' : JSON.stringify(Object.keys(data))), data !== null);
           if (data === null) {
