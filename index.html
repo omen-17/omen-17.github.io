@@ -746,6 +746,8 @@ footer {
     <span class="sec-title">Classifica Medaglie</span>
     <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
       <button class="btn-p gold judge-only" id="medals-btn" onclick="openMedals()" style="font-size:.74rem;">Assegna Medaglie</button>
+<button class="btn-p judge-only" onclick="resetMedals()" style="font-size:.74rem;background:var(--red);">Resetta Medaglie</button>
+
     </div>
   </div>
   <div class="tbl-wrap">
@@ -926,6 +928,12 @@ footer {
     // Keep last 10 lines
     while (panel.children.length > 10) panel.removeChild(panel.lastChild);
   }
+function resetMedals() {
+  if (!isJudge) return;
+  if (!confirm('Sei sicuro? Tutte le medaglie e i punti verranno azzerati.')) return;
+  scores = {};
+  save();
+}
 
 function save() {
     localStorage.setItem('alco_teams',  JSON.stringify(teams));
